@@ -22,10 +22,12 @@ for i = 1:n
     im = frame_open(file,path,i);
     movie = uint8(frame_process(im)*255);
     
-    c = floor(i/100);
-    d = floor((i-c*100)/10);
-    u = floor(i-c*100-d*10);
+    m = floor(i/1000);
+    c = floor((i-m*1000)/100);
+    d = floor((i-m*1000-c*100)/10);
+    u = floor(i-m*1000-c*100-d*10);
     s = size(im_name,2);
+    im_name(s-7) = num2str(m);
     im_name(s-6) = num2str(c);
     im_name(s-5) = num2str(d);
     im_name(s-4) = num2str(u);
@@ -34,4 +36,5 @@ for i = 1:n
     waitbar(i/n,w);
 end
 close(w);
+close all
 toc
