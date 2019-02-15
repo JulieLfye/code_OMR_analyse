@@ -9,6 +9,6 @@ h = imellipse(gca, ROIdish);
 maskbw = createMask(h);
 maskbw = uint8(maskbw);
 imc = b.*maskbw;
-ima = bwareaopen(imc, 60,4);
+ima = bwareaopen(imc, 20,4);
 se = strel('square',2);
 im_bw = imdilate(ima,se);
