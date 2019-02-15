@@ -47,7 +47,7 @@ for k = 1:size(nb,2)
     
     for i = 1:n
         im = frame_open(file,path,i);
-        movie = uint8(frame_process(im)*255);
+        movie = uint8(frame_process_fps500(im)*255);
         
         m = floor(i/1000);
         c = floor((i-m*1000)/100);
