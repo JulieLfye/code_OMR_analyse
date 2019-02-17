@@ -14,39 +14,56 @@ f = 1 + 0;
 
 cx = xbody(f,:);
 cy = ybody(f,:);
-% plot(cx)
-% hold on
-% plot(cy)
+plot(cx)
+hold on
+plot(cy)
 
-fxy = find(isnan(cx)==1);
+
+fxy = find(isnan(cx)==0);
 d = diff(fxy);
 ff = find(d > 1);
-ind_no_object = find(diff(ff) > 10);
-for i = 1:in
 
-% determine moment when no fish are attributed
+gp_before = [];
+ind_seq = nan(2,size(ff,2)+1);
 
+for i = 1:size(ff,2)+1
+    % group of nan index
+    if i == 1
+        gp = unique(fxy(1:ff(1)));
+    elseif i == size(ff,2)+1
+        gp = unique(fxy(ff(i-1)+1:end));
+    else
+        gp = fxy(ff(i-1)+1:ff(i));
+    end
+    ind_seq(:,i) = [min(gp); max(gp)];
+end
 
+% study x and y discontinuity for each sequence
+seq = [];
+start_seq = ind_seq(1,1);
+for i = 1:size(ind_seq,2) - 1
+    dcx = abs(cx(ind_seq(1,i+1))-cx(ind_seq(2,i)));
+    dcy = abs(cy(ind_seq(1,i+1))-cy(ind_seq(2,i)));
+    if dcx > 50 || dcy > 50
+        seq = [seq, [start_seq; ind_seq(2,i)]];
+        start_seq = ind_seq(1,i+1);
+    end
+    if i == size(ind_seq,2) - 1
+        seq = [seq, [start_seq; ind_seq(2,end)]];
+    end
+end
 
-% % je corrige les problèmes de "clignotements"
-% for i = 1:size(ff,2)-1
-%     if ff(i)-1 == 0
-%         gp = fxy(ff(i))
-%     else
-%         gp = [fxy(ff(i)-1),(fxy(ff(i)))]
-%         dgp = diff(gp);
-%         fgp = find(dgp > 1);
-%         if isempty(fgp)==0
-%             for j = 1:size(fgp,2)
-%                 cx(gp) = (cx(min(gp)-1)+cx(max(gp)+1))/2;
-%                 cy(gp) = (cy(min(gp)-1)+cy(max(gp)+1))/2;
-%             end
-%         elseif size(gp,2) == 1
-%             cx(gp) = (cx(gp-1)+cx(gp+1))/2;
-%         end
-%     end
-% end
-% figure(1)
-% plot(cx-100)
-% plot(cy-100)
+% correct nan value into sequence
+fx = cx-100;
+fy = cy-100;
+for i = 1:size(seq,2)
+    f = find(isnan(cx(seq(1,i):seq(2,i)))==1)+seq(1,i)-1;
+    while isempty(f) == 0
+        fx(1,f(1)) = fx(1,f(1)-1);
+        fy(1,f(1)) = fy(1,f(1)-1);
+        f(1) = [];
+    end
+end
 
+plot(fx)
+plot(fy)

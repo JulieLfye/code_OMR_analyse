@@ -16,15 +16,13 @@ ang_OMR = angle;
 
 % for f = 1:nb_detected_object
     
-    f = 11;
-    OMRangle = 0;
-    fig = 1;
+    f = 1;
     
     d  = [nan diff(ang(f,:))];
     [val,ind] = findpeaks(d,'MinPeakHeight',pi/2);
-%             plot(d)
-%             hold on
-%             plot(ind,val,'o')
+    %         plot(d)
+    %         hold on
+    %         plot(ind,val,'o')
     
     %% determine  ang correct angle for group of peaks
     dind = diff(ind);
@@ -55,6 +53,25 @@ ang_OMR = angle;
                 mmin = min(gpind);
                 mmax = max(gpind);
                 m = round(mean(gpind));
+                %                 if mmax <= nb_frame-5 && mmin-5 >= 1
+                %                     md = mean(ang(f,mmax+4:mmax+5),'omitnan');
+                %                     mg = mean(ang(f,mmin-5:mmin-4),'omitnan');
+                %                 elseif mmax > nb_frame-5
+                %                     md = ang(f,end);
+                %                     mg = mean(ang(f,mmin-5:mmin-4),'omitnan');
+                %                 elseif mmin <= 5
+                %                     mg = ang(f,1);
+                %                     md = mean(ang(f,mmax+4:mmax+5),'omitnan');
+                %                 end
+                % correction
+                %                 if mmax <= nb_frame-3 && mmin-3 >= 1
+                %                     ang(f,mmin-3:m-1) = mg;
+                %                     ang(f,m:mmax+3) = md;
+                %                 elseif mmax > nb_frame-3
+                %                     ang(f,m:end ) = md;
+                %                 elseif mmin <= 3
+                %                     ang(f,1:m-1) = mg;
+                %                 end
                 if mmax <= nb_frame-4 && mmin-4 >= 1
                     ang(f,mmin-3:m-1) = ang(f,mmin-4);
                     ang(f,m:mmax+3) = ang(f,mmax+4);
@@ -81,6 +98,25 @@ ang_OMR = angle;
                 mmin = min(gpind);
                 mmax = max(gpind);
                 m = round(mean(gpind));
+                %                 if mmax <= nb_frame-5 && mmin-5 >= 1
+                %                     md = mean(ang(f,mmax+4:mmax+5),'omitnan');
+                %                     mg = mean(ang(f,mmin-5:mmin-4),'omitnan');
+                %                 elseif mmax > nb_frame-5
+                %                     md = ang(f,end);
+                %                     mg = mean(ang(f,mmin-5:mmin-4),'omitnan');
+                %                 elseif mmin <= 5
+                %                     mg = ang(f,1);
+                %                     md = mean(ang(f,mmax+4:mmax+5),'omitnan');
+                %                 end
+                % correction
+                %                 if mmax <= nb_frame-3 && mmin-3 >= 1
+                %                     ang(f,mmin-3:m-1) = mg;
+                %                     ang(f,m:mmax+3) = md;
+                %                 elseif mmax > nb_frame-3
+                %                     ang(f,m:end ) = md;
+                %                 elseif mmin <= 3
+                %                     ang(f,1:m-1) = mg;
+                %                 end
                 if mmax <= nb_frame-4 && mmin-4 >= 1
                     ang(f,mmin-3:m-1) = ang(f,mmin-4);
                     ang(f,m:mmax+3) = ang(f,mmax+4);
@@ -97,6 +133,25 @@ ang_OMR = angle;
         mmin = min(gpind);
         mmax = max(gpind);
         m = round(mean(gpind));
+        %         if mmax <= nb_frame-5 && mmin-5 >= 1
+        %             md = mean(ang(f,mmax+4:mmax+5),'omitnan');
+        %             mg = mean(ang(f,mmin-5:mmin-4),'omitnan');
+        %         elseif mmax > nb_frame-5
+        %             md = ang(f,end);
+        %             mg = mean(ang(f,mmin-5:mmin-4),'omitnan');
+        %         elseif mmin <= 5
+        %             mg = ang(f,1);
+        %             md = mean(ang(f,mmax+4:mmax+5),'omitnan');
+        %         end
+        % correction
+        %         if mmax <= nb_frame-3 && mmin-3 >= 1
+        %             ang(f,mmin-3:m-1) = mg;
+        %             ang(f,m:mmax+3) = md;
+        %         elseif mmax > nb_frame-3
+        %             ang(f,m:end ) = md;
+        %         elseif mmin <= 3
+        %             ang(f,1:m-1) = mg;
+        %         end
         if mmax <= nb_frame-4 && mmin-4 >= 1
             ang(f,mmin-3:m-1) = ang(f,mmin-4);
             ang(f,m:mmax+3) = ang(f,mmax+4);
@@ -172,4 +227,4 @@ ang_OMR = angle;
     end
 % end
 
-% figure, plot(ang_OMR')
+figure, plot(ang_OMR')
