@@ -1,6 +1,4 @@
-% % analyse spontaneous activity
-
-F = Focus();
+% extract raw data for spontaneous activity movie
 
 if exist('ang_body','var') == 0
     clear;
@@ -12,77 +10,54 @@ if exist('ang_body','var') == 0
     t = readtable(fullfile(path,'Tracking_Result\tracking.txt'),'Delimiter','\t');
     s = table2array(t);
     
-    date = input('Date of the experiment (yy-mm-dd) ?\n','s');
-    F.date = date;
-    
     if isfile(fullfile(path(1:end-10), 'raw_data.mat')) == 0
+        
+        date = input('Date of the experiment (yy-mm-dd) ?\n','s');
+        fps = input('fps of the movie? \n');
+        F = Focus();
+        F.date = date;
         
         [nb_tracked_object, nb_frame, nb_detected_object, xbody, ybody]...
             = extract_parameters_from_fast_track(s);
         
+        % extract angle from the binarized movie
         tic
         [ang_body] = extract_angle_fish_OMR(nb_detected_object, nb_frame, 50, 50,...
             xbody, ybody, file, path, 0);
         toc
         
+        % determine the swimming sequence
         [seq, xbody, ybody, ang_body] = extract_sequence(nb_detected_object,...
             xbody, ybody, ang_body);
         
+        % correct angle
+        ff = find(isnan(seq(1,:))==1);
+        angle = nan(nb_detected_object,nb_frame);
+        OMRangle = 0;
+        for f = 1:nb_detected_object
+            if f == 1
+                ind_seq = seq(:,1:ff(f)-1);
+            else
+                ind_seq = seq(:,ff(f-1)+1:ff(f)-1);
+            end
+            
+            while isempty(ind_seq) == 0
+                cang = ang_body(f,ind_seq(1,1):ind_seq(2,1));
+                
+                % correct angle of the sequence
+                [~, corr_angle] = correct_angle_sequence(cang, 0, OMRangle);
+                angle(f,ind_seq(1,1):ind_seq(2,1)) = corr_angle;
+                ind_seq(:,1) = [];
+            end
+        end
         
+        %save raw data
+        save(fullfile(path(1:end-10), 'raw_data.mat'), 'ang_body', 'angle',...
+            'date', 'file', 'fps', 'nb_detected_object', 'nb_frame', 'nb_tracked_object',...
+            'OMRangle', 'path', 'seq', 'xbody', 'ybody','F');
         
     else
         load(fullfile(path(1:end-10), 'raw_data.mat'));
-        
+        disp('Raw data already extracted')
     end
 end
-
-
-%% determination of IBI
-ff = find(isnan(seq(1,:))==1);
-
-OMRangle = 0; % if OMRangle = 0, then angle = ang_OMR
-angle = nan(nb_detected_object,nb_frame);
-
-% f = 1;
-bout_indexes = [];
-nb_bout = [];
-IBI = [];
-fps = 150;
-for f = 1:nb_detected_object
-    if f == 1
-        ind_seq = seq(:,1:ff(f)-1);
-    else
-        ind_seq = seq(:,ff(f-1)+1:ff(f)-1);
-    end
-    
-    while isempty(ind_seq) == 0
-        cx = xbody(f,ind_seq(1,1):ind_seq(2,1));
-        cy = ybody(f,ind_seq(1,1):ind_seq(2,1));
-        cang = ang_body(f,ind_seq(1,1):ind_seq(2,1));
-        
-        % correct angle of the sequence
-        [~, corr_angle] = correct_angle_sequence(cang, 0, OMRangle);
-        angle(f,ind_seq(1,1):ind_seq(2,1)) = corr_angle;
-        
-        % determine IBI with x, y (I don't use the angle)
-        [boutind, minh, nbouts] = BoutSpot_julie(cx, cy, fps, 0);
-        bout_indexes = [bout_indexes, boutind, nan];
-        nb_bout = [nb_bout, nbouts, nan];
-        IBI = [IBI, diff(boutind)/fps, nan];
-        
-        ind_seq(:,1) = [];
-    end
-end
-
-
-figure,
-[counts,centers] = hist(IBI,50);
-bar(centers,counts/sum(nb_bout,'omitnan'),1)
-mIBI = mean(IBI,'omitnan');
-hold on
-med = median(IBI,'omitnan');
-me = mean(IBI,'omitnan');
-plot([med med], ylim, 'k', 'LineWidth', 2)
-plot([me me], ylim, 'r', 'LineWidth', 2)
-
-% save raw data
