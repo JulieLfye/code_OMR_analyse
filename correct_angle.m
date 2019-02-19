@@ -1,5 +1,5 @@
-% function [angle, ang_OMR] = correct_angle(nb_detected_object,...
-%     nb_frame, ang_body, fig, OMRangle)
+function [angle, ang_OMR] = correct_angle(nb_detected_object,...
+    nb_frame, ang_body, fig, OMRangle)
 
 %% Information
 % input:
@@ -14,11 +14,11 @@ ang = ang_body;
 angle = ang;
 ang_OMR = angle;
 
-% for f = 1:nb_detected_object
+for f = 1:nb_detected_object
     
-    f = 11;
-    OMRangle = 0;
-    fig = 1;
+%     f = 11;
+%     OMRangle = 0;
+%     fig = 1;
     
     d  = [nan diff(ang(f,:))];
     [val,ind] = findpeaks(d,'MinPeakHeight',pi/2);
@@ -170,6 +170,6 @@ ang_OMR = angle;
         plot(ang(f,:)*180/pi);
         plot(ang_OMR(f,:)*180/pi);
     end
-% end
+end
 
 % figure, plot(ang_OMR')

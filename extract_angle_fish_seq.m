@@ -1,10 +1,9 @@
-% function [ang_body] = extract_angle_fish_OMR(nb_detected_object, nb_frame, w, h,...
-%     xbody, ybody, file, path, fig)
-
+function [ang_body] = extract_angle_fish_seq(nb_detected_object, nb_frame, w, h,...
+    xbody, ybody, file, path, fig)
 
 wb = waitbar(0,'Extract angle');
 ang_body = nan(nb_detected_object,nb_frame);
-% for f = 1:nb_detected_object
+for f = 1:nb_detected_object
     for i = 1:nb_frame
         wa = w;
         ha = h;
@@ -33,6 +32,6 @@ ang_body = nan(nb_detected_object,nb_frame);
         hold on
         plot(ang_body(f,:));
     end
-% end
+end
 
 close(wb);
