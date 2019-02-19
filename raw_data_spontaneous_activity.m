@@ -28,7 +28,7 @@ if exist('ang_body','var') == 0
         
         % determine the swimming sequence
         [seq, xbody, ybody, ang_body] = extract_sequence(nb_detected_object,...
-            xbody, ybody, ang_body);
+            xbody, ybody, ang_body, fps);
         
         % correct angle
         ff = find(isnan(seq(1,:))==1);
@@ -55,6 +55,7 @@ if exist('ang_body','var') == 0
         save(fullfile(path(1:end-10), 'raw_data.mat'), 'ang_body', 'angle',...
             'date', 'file', 'fps', 'nb_detected_object', 'nb_frame', 'nb_tracked_object',...
             'OMRangle', 'path', 'seq', 'xbody', 'ybody','F');
+        disp('Raw data saved')
         
     else
         load(fullfile(path(1:end-10), 'raw_data.mat'));
