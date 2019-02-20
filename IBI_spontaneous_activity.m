@@ -1,17 +1,22 @@
 % Extract IBI
 
-if exist('ang_body','var') == 0
-    clear
-    close all
-    clc
-    
-    disp('Select the raw_data.mat to analyze (spontaneous activity)');
-    [file,path] = uigetfile('*.mat',[],'C:\Users\LJP\Documents\MATLAB\these\data_OMR\');
-    load(fullfile(path,file));
-    F = Focus();
-    F.date = path(end-37:end-30);
+clear
+close all
+clc
 
+disp('Select the raw_data.mat to analyze (spontaneous activity)');
+[file,path] = uigetfile('*.mat',[],'C:\Users\LJP\Documents\MATLAB\these\data_OMR\');
+load(fullfile(path,file));
+F = Focus_spontaneous();
+F.date = path(end-37:end-30);
+
+if isfile(fullfile(F.path,'all_data_IBI.mat')) == 0
+    all_IBI = [];
+    all_bout = [];
+else
+    D = F.load('all_data_IBI.mat');
 end
+
 
 % code
 ff = find(isnan(seq(1,:))==1);
@@ -40,19 +45,14 @@ for f = 1:nb_detected_object
     end
 end
 
-if exist('all_IBI','var') == 0
-    all_IBI = IBI(isnan(IBI)==0);
-    all_bout = sum(nb_bout,'omitnan');
-else
-    F.load('all_data_IBI.mat')
-    all_IBI = [all_IBI, IBI(isnan(IBI)==0)];
-    all_bout = [all_bout, sum(nb_bout,'omitnan')];
-end
+all_IBI = [D.all_IBI IBI(isnan(IBI)==0)];
+all_bout = [D.all_bout sum(nb_bout,'omitnan')];
+
 
 %save all_data_IBI
 run = path(end-12:end-11);
 p = ['run_' run '_IBI_data' '.mat'];
-save(fullfile(F.path,'','all_data_IBI.mat'), 'all_IBI', 'all_bout');
+save(fullfile(F.path,'all_data_IBI.mat'), 'all_IBI', 'all_bout');
 save(fullfile(F.path,p), 'bout_indexes', 'nb_bout', 'IBI');
 
 

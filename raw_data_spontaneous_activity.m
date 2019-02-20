@@ -6,16 +6,18 @@ if exist('ang_body','var') == 0
     close all;
     
     disp('Select the first frame of the binarized movie');
-    [file,path] = uigetfile('*.tif',[],'C:\Users\LJP\Documents\MATLAB\these\data_OMR\');
+    [file,path] = uigetfile('*.tif',[],'C:\Users\LJP\Documents\MATLAB\these\data_spontaneous');
     t = readtable(fullfile(path,'Tracking_Result\tracking.txt'),'Delimiter','\t');
     s = table2array(t);
     
+    disp('Select the experiment parameters file')
+    [f,p] = uigetfile('.mat',[],path(1:end-10));
+    load(fullfile(p,f));
+    
     if isfile(fullfile(path(1:end-10), 'raw_data.mat')) == 0
         
-        date = input('Date of the experiment (yy-mm-dd) ?\n','s');
         fps = input('fps of the movie? \n');
-        F = Focus();
-        F.date = date;
+        date = path(end-25:end-18);
         
         [nb_tracked_object, nb_frame, nb_detected_object, xbody, ybody]...
             = extract_parameters_from_fast_track(s);
@@ -54,7 +56,7 @@ if exist('ang_body','var') == 0
         %save raw data
         save(fullfile(path(1:end-10), 'raw_data.mat'), 'ang_body', 'angle',...
             'date', 'file', 'fps', 'nb_detected_object', 'nb_frame', 'nb_tracked_object',...
-            'OMRangle', 'path', 'seq', 'xbody', 'ybody','F');
+            'OMRangle', 'path', 'seq', 'xbody', 'ybody','P');
         disp('Raw data saved')
         
     else

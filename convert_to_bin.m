@@ -10,7 +10,7 @@ nb = [];
 while j~= 0
     
     disp('Select the first frame');
-    [f,p] = uigetfile('*.pgm',[],'C:\Users\LJP\Documents\MATLAB\these\data_OMR\');
+    [f,p] = uigetfile('*.pgm',[],'C:\Users\LJP\Documents\MATLAB\these\');
     n = input('Number of frame to open? ');
     
     all_file = [all_file '/' f];
