@@ -1,7 +1,7 @@
 function [ang_body] = extract_angle_fish_OMR(nb_detected_object, nb_frame, w, h,...
-    xbody, ybody, file, path, fig)
+    xbody, ybody, file, path, fig,k ,nb)
 
-wb = waitbar(0,'Extract angle');
+wb = waitbar(0,sprintf('Extract angle, movie %d / %d', k, nb));
 ang_body = nan(nb_detected_object,nb_frame);
 for f = 1:nb_detected_object
     for i = 1:nb_frame
