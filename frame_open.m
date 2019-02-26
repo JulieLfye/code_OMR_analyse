@@ -1,4 +1,4 @@
-function im = frame_open(file,path,im_nb)
+function [im, path, file] = frame_open(file,path,im_nb)
 
 im_nb = im_nb-1;
 m = floor(im_nb/1000);
