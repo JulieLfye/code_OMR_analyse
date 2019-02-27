@@ -1,4 +1,4 @@
-%% ----- Extract raw data for spontaneous activity movie -----
+%% ----- Extract raw data for OMR test movie -----
 
 clear;
 clc;
@@ -14,7 +14,7 @@ nb = 0;
 while j~= 0
     
     disp('Select the first frame of the binarized movie');
-    [f,p] = uigetfile('*.tif',[],'C:\Users\LJP\Documents\MATLAB\these\data_spontaneous\');
+    [f,p] = uigetfile('*.tif',[],'C:\Users\LJP\Documents\MATLAB\these\data_OMR\');
     
     all_file = [all_file '/' f];
     all_path = [all_path '/' p];
@@ -28,6 +28,7 @@ all_path = [all_path '/'];
 f_file = strfind(all_file,'/');
 f_path = strfind(all_path,'/');
 
+tic
 for k = 1:nb
     file = all_file(f_file(k)+1:f_file(k+1)-1);
     path = all_path(f_path(k)+1:f_path(k+1)-1);    
@@ -49,10 +50,8 @@ for k = 1:nb
         
         % ----- Analyse -----
         % Extract angle from the binarized movie
-        tic
         [ang_body] = extract_angle_fish_OMR(nb_detected_object, nb_frame, 50, 50,...
              xbody, ybody, file, path, fig, k ,nb);
-        toc
         
         % Determine the swimming sequence
         [seq, xbody, ybody, ang_body] = extract_sequence(nb_detected_object,...
@@ -61,7 +60,7 @@ for k = 1:nb
         % Correct angle
         ff = find(isnan(seq(1,:))==1);
         angle = nan(nb_detected_object,nb_frame);
-        OMRangle = 0;
+        OMRangle = P.OMR.angle*pi/180;
         for f = 1:nb_detected_object
             if f == 1
                 ind_seq = seq(:,1:ff(f)-1);
@@ -88,3 +87,4 @@ for k = 1:nb
         disp('Raw data already extracted')
     end
 end
+toc

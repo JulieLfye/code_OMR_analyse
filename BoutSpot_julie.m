@@ -1,4 +1,4 @@
-function [boutindexes, minh, nbouts] = BoutSpot_julie(cx, cy, fps, checkplot)
+% function [boutindexes, minh, nbouts] = BoutSpot_julie(cx, cy, fps, checkplot)
 % function [boutindexes, minh, nbouts] = BoutSpot_julie(cx, cy, cang, fps, checkplot)
 
 % Extraction of bout indexes from x y coordinated and angle of the fish
@@ -50,8 +50,8 @@ logsigdisplacementmatrix(~isfinite(logsigdisplacementmatrix)) = NaN;
 
 %%
 minIPI = 0.2; %minimum inter-peak interval (in secs)
-minh = nanmedian(logsigdisplacementmatrix,2)+abs(prctile(logsigdisplacementmatrix, 10, 2)-nanmedian(logsigdisplacementmatrix,2));
-% minh = prctile(logsigdisplacementmatrix, 90, 2);
+% minh = nanmedian(logsigdisplacementmatrix,2)+abs(prctile(logsigdisplacementmatrix, 10, 2)-nanmedian(logsigdisplacementmatrix,2));
+minh = prctile(logsigdisplacementmatrix, 70, 2);
 
 pkmaxnb = 0;
 lsdm = logsigdisplacementmatrix;
