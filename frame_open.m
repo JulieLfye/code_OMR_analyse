@@ -1,4 +1,4 @@
-function [im, path, file] = frame_open(file,path,im_nb)
+function [path, file] = frame_open(file,path,im_nb)
 
 im_nb = im_nb-1;
 m = floor(im_nb/1000);
@@ -10,4 +10,3 @@ file(s-7) = num2str(m);
 file(s-6) = num2str(c);
 file(s-5) = num2str(d);
 file(s-4) = num2str(u);
-im = imread(fullfile(path,file));
