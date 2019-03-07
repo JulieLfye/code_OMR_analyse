@@ -105,6 +105,7 @@ if ind(1,1) <= fps/2
                         mL = vel(1,kL);
                     end
                     if kL == ind_bout(2,i-1) %beginning of the bout not find
+                        deb = ma
                         kL = find(vel==min(vel((peakInds(i)-round(0.15*fps)):peakInds(i)-1)));
                     end
                 end
