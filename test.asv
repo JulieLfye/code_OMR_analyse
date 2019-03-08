@@ -42,7 +42,6 @@ for k = nb(1,1):nb(1,2)
         
         % analyse
         
-        
         % create date folder if not existing
         if isfolder(F.path) == 0
             mkdir(F.path);
@@ -50,18 +49,13 @@ for k = nb(1,1):nb(1,2)
         
         % save data for the movie
         
-        % save all data of this date
+        % save all data o f 
         
         
-    else
-         no_raw_data = [no_raw_data, k];
     end
 end
 
-if isempty(no_raw_data) == 0
-    X = ['No raw data for run ', num2str(no_raw_data)];
-    disp(X);
-end
+
 
 
 ff = find(isnan(seq(1,:))==1);
