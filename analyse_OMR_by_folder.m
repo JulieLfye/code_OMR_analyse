@@ -17,6 +17,8 @@ nb(1,2) = input('to ??       ');
 F = Focus_OMR();
 
 
+tic
+w = waitbar(0,'Analysing');
 for k = nb(1,1):nb(1,2)
     
     dp = floor(k/10);
@@ -79,14 +81,16 @@ for k = nb(1,1):nb(1,2)
     else
         no_raw_data = [no_raw_data, k];
     end
+    waitbar((k-nb(1)+1)/(nb(2)-nb(1)+1),w);
 end
+toc
 
 if isempty(no_raw_data) == 0
     X = ['No raw data for run ', num2str(no_raw_data)];
     disp(X);
 end
 
-
+close(w);
 % ff = find(isnan(seq(1,:))==1);
 % fps = 150;
 % time = 0:1/fps:10-1/fps;

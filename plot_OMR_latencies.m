@@ -7,7 +7,7 @@ F = Focus_OMR();
 
 F.cycle = 'cycle_10mm';
 F.speed = 'speed_20mm_s';
-F.dpf = '7_dpf';
+F.dpf = '6_dpf';
 p = F.path;
 p = p(1:end-1);
 l = dir(p(1:end-1));
@@ -34,7 +34,7 @@ end
 
 latency_K(isnan(latency_K)) = [];
 [counts, centers] = hist(latency_K,50);
-figure,
+subplot(1,3,1)
 % bar(centers, counts/size(latency_K,2),1);
 bar(centers, counts,1);
 hold on
@@ -59,7 +59,7 @@ plot(centers,gaussfit, 'Linewidth',2)
 
 latency_J(isnan(latency_J)) = [];
 [counts, centers] = hist(latency_J,50);
-figure,
+subplot(1,3,2)
 % bar(centers, counts/size(latency_J,2),1)
 bar(centers, counts,1)
 hold on
@@ -83,7 +83,7 @@ plot(centers,gaussfit, 'Linewidth',2)
 
 IBI(isnan(IBI)) = [];
 [counts, centers] = hist(IBI,50);
-figure,
+subplot(1,3,3)
 bar(centers, counts,1);
 hold on
 m_IBI = mean(IBI, 'omitnan');

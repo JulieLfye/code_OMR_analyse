@@ -1,8 +1,9 @@
-function [f,x,y, corr] = fitgauss_vel_bout(prewindow, postwindow, Indpeak, i, boutind, velocity, im)
+function [f,x,y, corr] = fitgauss_vel_bout(prewindow, postwindow, Indpeak, Indpeakvel, i, boutind, velocity, im)
 
 % boutind = indbout;
-% Indpeak = peakInds;
+% Indpeak = peakIndsvel1;
 % velocity = vel;
+% Indpeakvel = peakIndsvel;
 
 
 gaussEqn = 'a*exp(-(x-mu)^2/(2*sig^2))';
@@ -15,7 +16,12 @@ else
 end
 postbout = Indpeak(i) + 1 : Indpeak(i) + postwindow - 1;
 if i == size(Indpeak,2)
+    a = find(Indpeakvel>Indpeak(i),1);
+    if isempty(a) == 1
     postbout(postbout>=size(velocity,2)) = [];
+    else
+        postbout(postbout>=Indpeakvel(a)-10) = [];
+    end
 else
     postbout(postbout>=Indpeak(i+1)-15) = [];
 end

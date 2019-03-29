@@ -54,8 +54,6 @@ if isempty(ind_seq) == 0
         sigdisplacementmatrix = sigdisplacementmatrix/max(sigdisplacementmatrix)*100;
         vel = sigdisplacementmatrix;
         vel = movmean(vel,5);
-        acc = diff(vel);
-        acc = movmean(acc,3);
         lvel = log(vel);
         lvel(~isfinite(lvel)) = NaN;
         lvel(isnan(lvel)) = 0;
@@ -80,11 +78,6 @@ if isempty(ind_seq) == 0
         %                     plot(vel);
         %                     hold on;
         %                     plot(peakIndsvel,peakMagsvel,'o');
-        %
-        %           figure;
-        %         plot(acc);
-        %         hold on;
-        %         plot(peakIndsacc,peakMagsacc,'o');
         
         %             figure
         %             plot(vel);
