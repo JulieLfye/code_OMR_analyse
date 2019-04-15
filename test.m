@@ -15,14 +15,9 @@ correl_lim = 0.85;
 
 IBI = nan(1,nb_detected_object);
 
-f = 10;
+f = 1;
 for f = 1:nb_detected_object
-ff = find(isnan(seq(1,:))==1);
-if f == 1
-    ind_seq = seq(:,1:ff(f)-1);
-else
-    ind_seq = seq(:,ff(f-1)+1:ff(f)-1);
-end
+ind_seq = seq{f}(:,:);
 
 if isempty(ind_seq) == 0
     ind = ind_seq(:,1);

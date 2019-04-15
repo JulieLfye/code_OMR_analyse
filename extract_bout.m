@@ -1,45 +1,39 @@
-% function [] = extract_bout
+function [indbout, xbody, ybody] = extract_bout(xbody,...
+    ybody, nb_detected_object, seq, fps, f_remove, checkIm)
 
-% pour garder les datas, je vais utiliser une cell
+cxf = xbody;
+cyf = ybody;
 
-close all;
-clc;
+prewindow = 0.2;
+prewindow = round(prewindow*fps);
+postwindow = 0.2;
+postwindow = round(postwindow*fps);
+im = 0;
+sig_lim = round(0.6*150/6);
+correl_lim = 0.85;
+indbout = cell(1,nb_detected_object);
 
-IBI = nan(1,nb_detected_object);
-
-f = 3;
-% for f = 1:nb_detected_object
-ff = find(isnan(seq(1,:))==1);
-if f == 1
-    ind_seq = seq(:,1:ff(f)-1);
-else
-    ind_seq = seq(:,ff(f-1)+1:ff(f)-1);
-end
-
-if isempty(ind_seq) == 0
-    ind = ind_seq(:,1);
-    
-    % I only take fish that are present from close beginning
-    if ind(1,1) <= fps/2
-        %             disp('patate')
-        cx = xbody(f,ind(1,1):ind(2,1));
-        cy = ybody(f,ind(1,1):ind(2,1));
-        angf = angle(f,ind(1,1):ind(2,1));
+%% bout detection for OMR_acoustic
+f = 7;
+for f = 1:nb_detected_object
+    b = find(f_remove==f);
+    if isempty(b) == 1
+        indb = seq{f}(1);
+        inde = seq{f}(2);
+        
+        cx = cxf(f,indb:inde);
+        cy = cyf(f,indb:inde);
         
         mx = movmean(cx,10,'omitnan');
         my = movmean(cy,10,'omitnan');
-        mangf = movmean(angf,10,'omitnan');
         
         dx = diff(mx, 1, 2);
         dxcarr = dx.^2;
         dy = diff(my, 1, 2);
         dycarr = dy.^2;
-        dtheta = diff(mangf, 1, 2);
-        dthetacarr = dtheta.^2;
         
         % get variances
         vardxy = nanvar(dx(:)+dy(:));
-        vardth = nanvar(dtheta(:));
         
         % get the significant displacement
         sigdisplacementmatrix = ((dxcarr'+dycarr')/vardxy)';
@@ -47,164 +41,255 @@ if isempty(ind_seq) == 0
         sigdisplacementmatrix = sigdisplacementmatrix/max(sigdisplacementmatrix)*100;
         vel = sigdisplacementmatrix;
         vel = movmean(vel,5);
-        acc = diff(vel);
-        acc = movmean(acc,3);
+        lvel = log(vel);
+        lvel(~isfinite(lvel)) = NaN;
+        lvel(isnan(lvel)) = 0;
+        lvel(lvel<-5) = -5;
         
-        % ----- find peak and valley  with acceleration and velocity !! -----
+        % ----- find peak and valley -----
         minIPI = round(0.2*fps);
-        minhacc = 0.25;
-        [peakMags, peakInds] = findpeaks(acc,'MinPeakDistance', minIPI, 'MinPeakHeight', minhacc);
+        minh = std(lvel)+median(lvel);
+        minPro = 2;
+        [peakMags, peakInds] = findpeaks(lvel,'MinPeakDistance', minIPI, 'MinPeakHeight', minh, 'MinPeakProminence',minPro);
         
-        minhvel = 2;
-        [peakMagsvel, peakIndsvel] = findpeaks(vel,'MinPeakDistance', minIPI, 'MinPeakHeight', minhvel);
-%         [peakMagsvel, peakIndsvel] = findpeaks(vel,'MinPeakDistance', minIPI, 'MinPeakHeight', minhvel,'MinPeakProminence',2);
+        [peakMagsvel, peakIndsvel] = findpeaks(vel,'MinPeakDistance', minIPI, 'MinPeakHeight', 1);
         
-%         nanmedian(logsigdisplacementmatrix,2)+abs(prctile(logsigdisplacementmatrix, 10, 2)-nanmedian(logsigdisplacementmatrix,2));
+%             plot(vel)
+%             hold on
+%             plot(peakIndsvel,peakMagsvel,'bo')
+%             plot(peakInds, vel(peakInds)+5,'ko')
         
-        
-        % - PLOT
-%                 figure;
-%                 plot(acc);
-%                 hold on;
-%                 plot(peakInds,peakMags,'o');
-%                 plot(xlim,[0.15 0.15],'k')
-%                 plot(xlim,[-0.15 -0.15],'k')
-                
-                figure;
-                plot(vel);
-                hold on;
-                plot(peakIndsvel,peakMagsvel,'o');
-                return
-        % - END PLOT -
-        
-        % remove peak too close from the edges
-        while isempty(peakInds) == 0 && peakInds(1) < round(0.15*fps)
-            peakInds(1) = [];
-            peakMags(1) = [];
-        end
+        %% part to define bout
+        indbt = nan(2,size(peakInds,2));
         if isempty(peakInds) == 0
-            n = 0;
             
-            while isempty(peakInds) == 0 && peakInds(end) > size(vel,2)-round(0.2*fps)
-                n = n+1;
-                peakInds(end) = [];
-                peakMags(end) = [];
+            % remove peak too close from the edges
+            while isempty(peakInds) == 0 && peakInds(1) < round(0.15*fps)
+                peakInds(1) = [];
+                peakMags(1) = [];
             end
-        end
-        %         plot(peakInds,peakMags,'o');
-        if isempty(peakInds) == 0
-            indbout = nan(2,size(peakInds,2));
-            % determine beginning and end bout with acceleration
-            for i=1:size(peakInds,2)
-                %             i = 8;
-                prewindow = 0.15;
-                prewindow = round(prewindow*fps);
-                prebout = peakInds(i) - prewindow : peakInds(i) - 1;
-                if i==1
-                    prebout(prebout<=0) = [];
-                else
-                    prebout(prebout<indbout(2,i-1)) = [];
-                end
-                postwindow = 0.3;
-                postwindow = round(postwindow*fps);
-                postbout = peakInds(i) + 1 : peakInds(i) + postwindow - 1;
-                if i == size(peakInds,2)
-                    postbout(postbout>=size(vel,2)) = [];
-                else
-                    postbout(postbout>=peakInds(i+1)-5) = [];
-                end
-                %                 % - PLOT -
-                %                 figure
-                %                 plot(acc(prebout(1):postbout(end)));
-                %                 hold on
-                %                 plot(xlim,[0.15 0.15],'k')
-                %                 plot(xlim,[-0.15 -0.15],'k')
-                %                 plot(size(prebout,2)+1,acc(peakInds(i)),'o')
-                %                 hold on;
-                %                 plot(xlim, [0.15 0.15],'k');
-                %                 plot(xlim, [-0.15 -0.15],'k');
-                %                 % - END PLOT -
+            if isempty(peakInds) == 0
+                n = 0;
                 
-                % --- beginning
-                t = [find(abs(acc(prebout))<0.15) 50];
-                tt =  find(diff(t)>1,1);
-                if isempty(tt) == 0
-                    indbout(1,i) = prebout(t(tt));
-                else
-                    if i == 1
-                        indbout(1,i) = prebout(1);
+                while isempty(peakInds) == 0 && peakInds(end) > size(vel,2)-round(0.1*fps)+1
+                    n = n+1;
+                    peakInds(end) = [];
+                    peakMags(end) = [];
+                end
+            end
+            
+            peakIndsvel1 = peakIndsvel;
+            i = 2;
+            for i=1:size(peakInds,2)
+                j = size(peakIndsvel,2);
+                k = [];
+                while j > 0
+                    d = abs(peakInds(i) - peakIndsvel(j));
+                    if d < 10
+                        k = j;
+                        j = 0;
                     else
-                        indbout(1,i) = indbout(2,i-1);
+                        j = j - 1;
                     end
                 end
-                % --- end
-                t = [-5 find(abs(acc(postbout))<0.15)];
-                tt = find(diff(t)>1);
-                if isempty(tt) == 0
-                    indbout(2,i) = postbout(t(tt(end)+1))+1;
+                peakIndsvel1(k) = 0;
+                
+                if isempty(k) == 0
+                    % peak detected on both lvel and vel
+                    [fg,x,y, correl] = fitgauss_vel_bout(prewindow, postwindow, peakInds, peakIndsvel, i, indbt, vel, im);
+                    if peakInds(i) < size(vel,2)-70 % non escape bout
+                        if correl > correl_lim && fg.sig < sig_lim
+                            indbt(1,i) = round(fg.mu - 3*fg.sig)-1;
+                            indbt(2,i) = round(fg.mu + 3*fg.sig)+1;
+                            if indbt(1,i) <= 0
+                                indbt(1,i) = 1;
+                            end
+                            if i < size(peakInds,2)
+                                if indbt(2,i) > peakInds(i+1)-10
+                                    indbt(2,i) = peakInds(i+1)-11;
+                                end
+                            else
+                                if indbt(2,i) > x(end)
+                                    indbt(2,i) = x(end);
+                                end
+                            end
+                        end
+                        
+                        acc = abs(diff(vel(x(x<peakInds(i)))));
+                        xacc = x(x<peakInds(i));
+                        xacc(1) = [];
+                        if x(1) < indbt(1,i)
+                            accp = abs(diff(vel(x(1):indbt(1,i)+1)));
+                        else
+                            accp = abs(diff(vel(x(1):x(5))));
+                        end
+                        if indbt(1,i)-1-x(1) > 0
+                            a = find(acc(indbt(1,i)-1-x(1):end)>3*std(accp),1)+indbt(1,i)-2;
+                        else
+                            a = find(acc(1:end)>3*std(accp),1)+indbt(1,i)-2;
+                        end
+                        if isempty(a) == 0
+                            indbt(1,i) = a;
+                        end
+                        
+                    elseif peakInds(i) >= size(vel,2)-70 % escape bout
+                        if correl > 0.8 && fg.sig < sig_lim
+                            % define beginning and end bout
+                            indbt(1,i) = round(fg.mu - 3*fg.sig)-1;
+                            indbt(2,i) = round(fg.mu + 3*fg.sig)+1;
+                            if indbt(1,i) <= 0
+                                indbt(1,i) = 1;
+                            end
+                            if i < size(peakInds,2)
+                                if indbt(2,i) > peakInds(i+1)-10
+                                    indbt(2,i) = peakInds(i+1)-11;
+                                end
+                            else
+                                if indbt(2,i) > x(end)
+                                    indbt(2,i) = x(end);
+                                end
+                            end
+                            
+                            acc = abs(diff(vel(x(x<peakInds(i)))));
+                            xacc = x(x<peakInds(i));
+                            xacc(1) = [];
+                            if x(1) < indbt(1,i)
+                                accp = abs(diff(vel(x(1):indbt(1,i)+1)));
+                            else
+                                accp = abs(diff(vel(x(1):x(5))));
+                            end
+                            if indbt(1,i)-1-x(1) > 0
+                                a = find(acc(indbt(1,i)-1-x(1):end)>3*std(accp),1)+indbt(1,i)-2;
+                            else
+                                a = find(acc(1:end)>3*std(accp),1)+indbt(1,i)-2;
+                            end
+                            if isempty(a) == 0
+                                indbt(1,i) = a;
+                            end
+                            
+                        end
+                    end
+                    
                 else
-                    indbout(2,i) = postbout(end-1);
-                end
-                duration = (indbout(2,i)-indbout(1,i))/fps;
-                if duration < 0.1
-                    indbout(:,i) = [nan; nan];
-                    peakInds(1,i) = nan;
-                    peakMags(1,i) = nan;
+                    % peak detected on lvel but not on vel
+                    [fg,x,y, correl] = fitgauss_vel_bout(prewindow, postwindow, peakInds, peakIndsvel, i, indbt, vel, im);
+                    if correl > correl_lim && fg.sig < sig_lim
+                        [mags, inds] = findpeaks(y,'minPeakHeight', 1.5*std(y));
+                        indbt(1,i) = round(fg.mu - 3*fg.sig)-1;
+                        indbt(2,i) = round(fg.mu + 3*fg.sig)+1;
+                        if indbt(1,i) <= 0
+                            indbt(1,i) = 1;
+                        end
+                        if i < size(peakInds,2)
+                            if indbt(2,i) > peakInds(i+1)-10
+                                indbt(2,i) = peakInds(i+1)-11;
+                            end
+                        else
+                            if indbt(2,i) > x(end)
+                                indbt(2,i) = x(end);
+                            end
+                        end
+                        
+                        acc = abs(diff(vel(x(x<peakInds(i)))));
+                        xacc = x(x<peakInds(i));
+                        xacc(1) = [];
+                        if x(1) < indbt(1,i)
+                            accp = abs(diff(vel(x(1):indbt(1,i)+1)));
+                        else
+                            accp = abs(diff(vel(x(1):x(5))));
+                        end
+                        if indbt(1,i)-1-x(1) > 0
+                            a = find(acc(indbt(1,i)-1-x(1):end)>3*std(accp),1)+indbt(1,i)-2;
+                        else
+                            a = find(acc(1:end)>3*std(accp),1)+indbt(1,i)-2;
+                        end
+                        if isempty(a) == 0
+                            indbt(1,i) = a;
+                        end
+                    end
                 end
             end
-        else
-            indbout = [];
+            
+            indbt(:,isnan(indbt(1,:))) = [];
+            d = diff(indbt,1)+1;
+            indbt(:,d<0.1*fps) = [];
+            %  -- check if peak detected on vel but not on lvel
+            peakIndsvel1(peakIndsvel1==0) = [];
+            if isempty(peakIndsvel1) == 0
+                i = 1;
+                for i = 1:size(peakIndsvel1,2)
+                    indtoadd = [];
+                    if peakIndsvel1(i) > round(0.15*fps) && peakIndsvel1(i) < size(vel,2)-round(0.1*fps)+1
+                        ibout = zeros(2,size(peakIndsvel1,2));
+                        [fg,x,y, correl] = fitgauss_vel_bout(prewindow, postwindow, peakIndsvel1, peakIndsvel, i, ibout, vel, im);
+                        if correl > correl_lim && fg.sig < sig_lim
+                            indtoadd = [round(fg.mu - 3*fg.sig)-1; round(fg.mu + 3*fg.sig)+1];
+                            acc = abs(diff(vel(x(x<peakIndsvel1(i)))));
+                            xacc = x(x<peakIndsvel1(i));
+                            xacc(1) = [];
+                            if x(1) < indbt(1,i)
+                                accp = abs(diff(vel(x(1):indtoadd(1)+1)));
+                            else
+                                accp = abs(diff(vel(x(1):x(5))));
+                            end
+                            if indtoadd(1)-1-x(1) > 0
+                                a = find(acc(indtoadd(1)-1-x(1):end)>3*std(accp),1)+indtoadd(1)-2;
+                            else
+                                a = find(acc(1:end)>3*std(accp),1)+indtoadd(1)-2;
+                            end
+                            if isempty(a) == 0
+                                indtoadd(1) = a;
+                            end
+                        end
+                        if isempty(indtoadd) == 0
+                            if indtoadd(1) <= 0
+                                indtoadd(1) = 1;
+                            end
+                            if indtoadd(1) < indbt(1,1) % first bout
+                                if indtoadd(2) > indbt(1,1)
+                                    indtoadd(2) = indbt(1,1)-5;
+                                end
+                                indbt = [indtoadd, indbt];
+                            elseif indtoadd(2) > indbt(2,end) % last bout
+                                if indtoadd(2) > size(vel,2)
+                                    indtoadd(2) = size(vel,2);
+                                end
+                                if indtoadd(1) <= indbt(2,end)
+                                    indtoadd(1) = indbt(2,end) + 1;
+                                end
+                                indbt = [indbt, indtoadd];
+                            else % between 2 bouts
+                                jsup = find(indbt(2,:)>fg.mu,1);
+                                jinf = find(indbt(1,:)<fg.mu);
+                                if isempty(jinf) == 0
+                                    jinf = jinf(end);
+                                elseif indtoadd(2) >= indbt(1,jsup)
+                                    indtoadd(2) = indbt(1,jsup)-1;
+                                    jinf = jsup-1;
+                                end
+                                if jsup-jinf == 1
+                                    % peak with position jsup
+                                    indbt = [indbt(:,1:jinf), indtoadd, indbt(:,jsup:end)];
+                                end
+                            end
+                        end
+                    end
+                end
+            end
         end
         
-        indbout(:,isnan(indbout(1,:))) = [];
-        peakInds(isnan(peakInds)) = [];
-        peakMags(isnan(peakMags)) = [];
-        
-        if isempty(indbout) == 0
-            
-            %             % - PLOT -
-%             figure
-%             plot(acc)
-%             hold on
-%             plot(peakInds,acc(peakInds),'o')
-%             plot(xlim,[0.15 0.15],'k')
-%             plot(xlim,[-0.15 -0.15],'k')
-%             plot(indbout(1,:),acc(indbout(1,:)),'ro')
-%             plot(indbout(2,:),acc(indbout(2,:)),'ko')
-            %             % - END PLOT -
-            
-            % determine IBI
-            if size(indbout,2) > 1
-                IBI(f) = mean(diff(indbout(1,:))/150);
-            else
-                IBI(f) = nan;
-            end
-            
-            %             % - PLOT -
-            %             figure,
-            %             plot(angf)
-            %             hold on
-            %             plot(indbout(1,:), angf(indbout(1,:)), 'ro')
-            %             plot(indbout(2,:), angf(indbout(2,:)), 'ko')
-            %             % - END PLOT -
-            
-            % determine angle "step"
-            
-            ang_step = nan(1,size(indbout,2)+1);
-            if indbout(1,1)-10 > 0
-                ang_step(1) = mean(angf(indbout(1,1)-10:indbout(1,1)));
-            else
-                ang_step(1) = mean(angf(1:indbout(1,1)));
-            end
-            for j = 1:size(indbout,2)
-                if indbout(2,j)+10 <= ind(2,1)-ind(1,1)+1
-                    ang_step(j+1) = mean(angf(1,indbout(2,j):indbout(2,j)+10));
-                else
-                    a = size(angf,2);
-                    ang_step(j+1) = mean(angf(1,indbout(2,j):a));
-                end
+        if checkIm == 1
+            figure
+            plot(vel);
+            hold on
+            plot(peakIndsvel,peakMagsvel,'bo')
+            plot(peakInds, vel(peakInds)+5,'ko')
+            for i = 1:size(indbt,2)
+                x = indbt(1,i):1:indbt(2,i);
+                y = vel(indbt(1,i):1:indbt(2,i));
+                plot(x,y,'r')
             end
         end
     end
+    indbout{f} = indbt;
 end
-% end
