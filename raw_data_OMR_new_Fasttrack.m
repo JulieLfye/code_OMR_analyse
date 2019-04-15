@@ -1,4 +1,4 @@
-%% ----- Extract raw data for spontaneous activity movie -----
+%% ----- Extract raw data for OMR movie -----
 % New Fasttrack
 
 clear;
@@ -10,7 +10,7 @@ no_tracking = [];
 file = 'tracking.txt';
 
 disp('Select the folder with the movie to analyze');
-selpath = uigetdir('D:\OMR_acoustic_experiments\spontaneous');
+selpath = uigetdir('D:\OMR_acoustic_experiments\OMR\');
 disp('Movie to analyse?');
 nb(1) = input('from ??     ');
 nb(2) = input('to ??       ');
@@ -37,7 +37,7 @@ for k = nb(1):nb(2)
             load(fullfile(p,f));
             
             fps = 150;
-            OMR_angle = 0;
+            OMR_angle = P.OMR.angle*pi/180;
             
             % -- Extract information from fast track
             [nb_frame, nb_detected_object, xbody, ybody, ang_body]...
@@ -65,7 +65,7 @@ for k = nb(1):nb(2)
             
             % -- Correct angle
             fig = 0;
-            angle = nan(nb_detected_object,nb_frame);
+            angle_OMR = nan(nb_detected_object,nb_frame);
             for f = 1:nb_detected_object
                 ind_seq = seq{f}(:,:);
                 while isempty(ind_seq) == 0
@@ -73,7 +73,7 @@ for k = nb(1):nb(2)
                     
                     % correct angle of the sequence
                     [~, corr_angle] = correct_angle_sequence(cang, fig, OMR_angle);
-                    angle(f,ind_seq(1,1):ind_seq(2,1)) = corr_angle;
+                    angle_OMR(f,ind_seq(1,1):ind_seq(2,1)) = corr_angle;
                     ind_seq(:,1) = [];
                 end
             end
@@ -84,13 +84,15 @@ for k = nb(1):nb(2)
                 ybody, nb_detected_object, seq, fps, f_remove, checkIm);
             
             % -- Determine IBI
+            IBI = nan(1,nb_detected_object);
             for f = 1:nb_detected_object
-                
-                       
+                IBI(f) = mean(diff(indbout{f}(1,:)))/fps;
+            end
+           
             % -- save raw data
-            save(fullfile(path(1:end-21), 'raw_data.mat'), 'ang_body', 'angle',...
-                'f_remove', 'file', 'fps', 'indbout', 'nb_detected_object', 'nb_frame',...
-                'P', 'path', 'seq', 'xbody', 'ybody');
+            save(fullfile(path(1:end-21), 'raw_data.mat'), 'ang_body', 'angle_OMR',...
+                'f_remove', 'file', 'fps', 'IBI', 'indbout', 'nb_detected_object', 'nb_frame',...
+                'OMR_angle', 'P', 'path', 'seq', 'xbody', 'ybody');
             disp('Raw data saved')
         else
             X = ['Raw data already extracted run ', num2str(d), num2str(u)];

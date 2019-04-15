@@ -1,5 +1,5 @@
-function [indbout, xbody, ybody] = extract_bout(xbody,...
-    ybody, nb_detected_object, seq, fps, f_remove, checkIm)
+% function [indbout, xbody, ybody] = extract_bout(xbody,...
+%     ybody, nb_detected_object, seq, fps, f_remove, checkIm)
 
 cxf = xbody;
 cyf = ybody;
@@ -8,14 +8,14 @@ prewindow = 0.2;
 prewindow = round(prewindow*fps);
 postwindow = 0.2;
 postwindow = round(postwindow*fps);
-im = 0;
+im = 1;
 sig_lim = round(0.6*150/6);
 correl_lim = 0.85;
 indbout = cell(1,nb_detected_object);
 
 %% bout detection for OMR_acoustic
-f = 7;
-for f = 1:nb_detected_object
+f = 21;
+% for f = 1:nb_detected_object
     b = find(f_remove==f);
     if isempty(b) == 1
         indb = seq{f}(1);
@@ -54,10 +54,10 @@ for f = 1:nb_detected_object
         
         [peakMagsvel, peakIndsvel] = findpeaks(vel,'MinPeakDistance', minIPI, 'MinPeakHeight', 1);
         
-%             plot(vel)
-%             hold on
-%             plot(peakIndsvel,peakMagsvel,'bo')
-%             plot(peakInds, vel(peakInds)+5,'ko')
+            plot(vel)
+            hold on
+            plot(peakIndsvel,peakMagsvel,'bo')
+            plot(peakInds, vel(peakInds)+5,'ko')
         
         %% part to define bout
         indbt = nan(2,size(peakInds,2));
@@ -292,4 +292,4 @@ for f = 1:nb_detected_object
         end
     end
     indbout{f} = indbt;
-end
+% end
