@@ -82,11 +82,14 @@ for k = nb(1):nb(2)
             checkIm = 0;
             [indbout, xbody, ybody] = extract_bout(xbody,...
                 ybody, nb_detected_object, seq, fps, f_remove, checkIm);
+
             
             % -- Determine IBI
             IBI = nan(1,nb_detected_object);
             for f = 1:nb_detected_object
-                IBI(f) = mean(diff(indbout{f}(1,:)))/fps;
+                if sum(sum(indbout{f}(:,:))) ~= 0
+                    IBI(f) = mean(diff(indbout{f}(1,:)))/fps;
+                end
             end
            
             % -- save raw data

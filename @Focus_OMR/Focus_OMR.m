@@ -17,7 +17,7 @@ classdef Focus_OMR < handle
             
             switch computer
                 case 'PCWIN64'
-                    this.Root = 'C:\Users\LJP\Documents\MATLAB\these\data_OMR\data\';
+                    this.Root = 'D:\OMR_acoustic_experiments\OMR\data';
             end
             
         end
@@ -26,7 +26,7 @@ classdef Focus_OMR < handle
         
         function p = path(this)
            
-            p = [this.Root this.dpf filesep this.cycle filesep this.speed filesep this.date filesep];
+            p = [this.Root filesep this.dpf filesep this.cycle filesep this.speed filesep this.date filesep];
             
         end
         
