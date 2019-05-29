@@ -5,6 +5,8 @@ clear;
 clc;
 close all;
 
+warning off
+
 nb = [nan, nan];
 no_tracking = [];
 file = 'tracking.txt';
@@ -25,83 +27,106 @@ for k = nb(1):nb(2)
     path = fullfile(selpath,run);
     
     if isfolder(fullfile(path, 'movie','Tracking_Result')) == 1
-        if isfile(fullfile(path,'raw_data.mat')) == 0
-            
-            path = fullfile(path,'movie','Tracking_Result');
-            t = readtable(fullfile(path,file),'Delimiter','\t');
-            s = table2array(t);
-            
-            
-            p = path(1:end-21);
-            f = ['parametersrun_', num2str(d), num2str(u), '.mat'];
-            load(fullfile(p,f));
-            
-            fps = 150;
-            OMR_angle = 0;
-            
-            % -- Extract information from fast track
-            [nb_frame, nb_detected_object, xbody, ybody, ang_body]...
-                = extract_parameters_from_fast_track(s);
-            
-            % -- Determine the swimming sequence
-            [seq, xbody, ybody, ang_body] = extract_sequence(nb_detected_object,...
-                xbody, ybody, ang_body, fps);
-            
-            % -- Remove too short sequence
-            f_remove = [];
-            for i = 1:nb_detected_object
-                f(i) = size(find(isnan(xbody(i,:))==0),2);
-                if f(i) < 55
-                    f_remove = [f_remove i];
-                end
+        
+        path = fullfile(path,'movie','Tracking_Result');
+        t = readtable(fullfile(path,file),'Delimiter','\t');
+        s = table2array(t);
+        
+        
+        p = path(1:end-21);
+        f = ['parametersrun_', num2str(d), num2str(u), '.mat'];
+        load(fullfile(p,f));
+        
+        fps = 150;
+        OMR_angle = 0;
+        
+        % -- Extract information from fast track
+        [nb_frame, nb_detected_object, xbody, ybody, ang_body, ang_tail]...
+            = extract_parameters_from_fast_track(s);
+        
+        % -- Determine the swimming sequence
+        [seq, xbody, ybody, ang_body, ang_tail] = extract_sequence(nb_detected_object,...
+            xbody, ybody, ang_body,ang_tail, fps);
+        
+        % -- Remove too short sequence
+        f_remove = [];
+        for i = 1:nb_detected_object
+            f(i) = size(find(isnan(xbody(i,:))==0),2);
+            if f(i) < 55
+                f_remove = [f_remove i];
             end
-            
-            xbody(f_remove,:) = nan;
-            ybody(f_remove,:) = nan;
-            ang_body(f_remove,:) = nan;
-            for i = 1:size(f_remove,2)
-                seq{f_remove(i)} = [];
+        end
+        
+        xbody(f_remove,:) = nan;
+        ybody(f_remove,:) = nan;
+        ang_body(f_remove,:) = nan;
+        ang_tail(f_remove,:) = nan;
+        for i = 1:size(f_remove,2)
+            seq{f_remove(i)} = [];
+        end
+        
+        % -- Correct angle
+        fig = 0;
+        angle = nan(nb_detected_object,nb_frame);
+        angle_tail = nan(nb_detected_object,nb_frame);
+        for f = 1:nb_detected_object
+            ind_seq = seq{f}(:,:);
+            while isempty(ind_seq) == 0
+                % correct body angle of the sequence
+                cang = ang_body(f,ind_seq(1,1):ind_seq(2,1));
+                [~, corr_angle] = correct_angle_sequence(cang, fig, OMR_angle, 230*pi/180);
+                angle(f,ind_seq(1,1):ind_seq(2,1)) = corr_angle;
+                
+                % correct tail angle of the sequence
+                cang = ang_tail(f,ind_seq(1,1):ind_seq(2,1));
+                [~, corr_angle] = correct_angle_sequence(cang, fig, OMR_angle, 2);
+                angle_tail(f,ind_seq(1,1):ind_seq(2,1)) = corr_angle;
+                ind_seq(:,1) = [];
             end
-            
-            % -- Correct angle
-            fig = 0;
-            angle = nan(nb_detected_object,nb_frame);
-            for f = 1:nb_detected_object
-                ind_seq = seq{f}(:,:);
-                while isempty(ind_seq) == 0
-                    cang = ang_body(f,ind_seq(1,1):ind_seq(2,1));
-                    
-                    % correct angle of the sequence
-                    [~, corr_angle] = correct_angle_sequence(cang, fig, OMR_angle);
-                    angle(f,ind_seq(1,1):ind_seq(2,1)) = corr_angle;
-                    ind_seq(:,1) = [];
-                end
-            end
-            
-            % -- Find bout
-            checkIm = 0;
-            [indbout, xbody, ybody] = extract_bout(xbody,...
-                ybody, nb_detected_object, seq, fps, f_remove, checkIm);
-            
-            % -- Determine IBI
-            IBI = nan(1,nb_detected_object);
-            for f = 1:nb_detected_object
+        end
+        
+        % -- Find bout
+        checkIm = 0;
+        [indbout, xbody, ybody] = extract_bout(xbody,...
+            ybody, nb_detected_object, seq, fps, f_remove, checkIm);
+        
+        % -- Determine IBI
+        IBI = nan(1,nb_detected_object);
+        for f = 1:nb_detected_object
+            if size(indbout{f},1) > 0
                 IBI(f) = mean(diff(indbout{f}(1,:)))/fps;
             end
-           
-            % -- save raw data
-            save(fullfile(path(1:end-21), 'raw_data.mat'), 'ang_body', 'angle',...
-                'f_remove', 'file', 'fps', 'IBI', 'indbout', 'nb_detected_object', 'nb_frame',...
-                'P', 'path', 'seq', 'xbody', 'ybody');
-            disp('Raw data saved')
-        else
-            X = ['Raw data already extracted run ', num2str(d), num2str(u)];
-            disp(X)
         end
+        
+        % -- Determine latency first bout with moving window
+        lat = [];
+        for l = 1:size(xbody,2)
+            fish_to_consider = find(isnan(xbody(:,l)) == 0)';
+            for i = 1:size(fish_to_consider,2)
+                f = fish_to_consider(i);
+                indbt = indbout{f};
+                t = find(indbt(1,:) > l,1);
+                if isempty(t) == 0
+                    lat = [lat, (indbt(1,t)-l)/150];
+                end
+            end
+        end
+        
+        
+        % mat_turn
+        % line: fish
+        % column: bout
+        
+        % -- save raw data
+        save(fullfile(path(1:end-21), 'raw_data.mat'), 'ang_body', 'ang_tail','angle',...
+            'angle_tail', 'f_remove', 'fps', 'IBI', 'indbout', 'lat', 'nb_detected_object',...
+            'nb_frame', 'P', 'seq', 'xbody', 'ybody');
+        disp('Raw data saved')
+        
     else
         no_tracking = [no_tracking, k];
     end
-    waitbar(k/nb(2)-nb(1)+1,wb,sprintf('Extract bout, movie %d / %d', k, nb(2)-nb(1)+1));
+    waitbar((k-nb(1)+1)/(nb(2)-nb(1)+1),wb,sprintf('Extract bout, movie %d / %d', k-nb(1)+2, nb(2)-nb(1)+1));
 end
 
 if isempty(no_tracking) == 0
@@ -111,3 +136,4 @@ end
 
 close(wb)
 close all;
+path

@@ -14,7 +14,7 @@ correl_lim = 0.85;
 indbout = cell(1,nb_detected_object);
 
 %% bout detection for OMR_acoustic
-f = 2;
+f = 4;
 for f = 1:nb_detected_object
     b = find(f_remove==f);
     if isempty(b) == 1
@@ -47,7 +47,7 @@ for f = 1:nb_detected_object
         lvel(lvel<-5) = -5;
         
         % ----- find peak and valley -----
-        minIPI = round(0.2*fps)-1;
+        minIPI = round(0.1*fps)-1;
         minh = std(lvel)+median(lvel);
         minPro = 2;
         [~, peakInds] = findpeaks(lvel,'MinPeakDistance', minIPI, 'MinPeakHeight', minh, 'MinPeakProminence',minPro);
@@ -64,7 +64,7 @@ for f = 1:nb_detected_object
         if isempty(peakInds) == 0
             
             peakIndsvel1 = peakIndsvel;
-            i = 2;
+            i = 1;
             for i=1:size(peakInds,2)
                 j = size(peakIndsvel,2);
                 k = [];
@@ -183,6 +183,7 @@ for f = 1:nb_detected_object
             indbt(:,isnan(indbt(1,:))) = [];
             d = diff(indbt,1)+1;
             indbt(:,d<0.1*fps) = [];
+            
             %  -- check if peak detected on vel but not on lvel
             peakIndsvel1(peakIndsvel1==0) = [];
             if isempty(peakIndsvel1) == 0
@@ -196,7 +197,7 @@ for f = 1:nb_detected_object
                         acc = abs(diff(vel(x(x<peakIndsvel1(i)))));
                         xacc = x(x<peakIndsvel1(i));
                         xacc(1) = [];
-                        if x(1) < indbt(1,i)
+                        if x(1) < indtoadd(1)
                             accp = abs(diff(vel(x(1):indtoadd(1)+1)));
                         else
                             accp = abs(diff(vel(x(1):x(5))));
@@ -214,31 +215,33 @@ for f = 1:nb_detected_object
                         if indtoadd(1) <= 0
                             indtoadd(1) = 1;
                         end
-                        if indtoadd(1) < indbt(1,1) % first bout
-                            if indtoadd(2) > indbt(1,1)
-                                indtoadd(2) = indbt(1,1)-5;
-                            end
-                            indbt = [indtoadd, indbt];
-                        elseif indtoadd(2) > indbt(2,end) % last bout
-                            if indtoadd(2) > size(vel,2)
-                                indtoadd(2) = size(vel,2);
-                            end
-                            if indtoadd(1) <= indbt(2,end)
-                                indtoadd(1) = indbt(2,end) + 1;
-                            end
-                            indbt = [indbt, indtoadd];
-                        else % between 2 bouts
-                            jsup = find(indbt(2,:)>fg.mu,1);
-                            jinf = find(indbt(1,:)<fg.mu);
-                            if isempty(jinf) == 0
-                                jinf = jinf(end);
-                            elseif indtoadd(2) >= indbt(1,jsup)
-                                indtoadd(2) = indbt(1,jsup)-1;
-                                jinf = jsup-1;
-                            end
-                            if jsup-jinf == 1
-                                % peak with position jsup
-                                indbt = [indbt(:,1:jinf), indtoadd, indbt(:,jsup:end)];
+                        if isempty(indbt) == 0
+                            if indtoadd(1) < indbt(1,1) % first bout
+                                if indtoadd(2) > indbt(1,1)
+                                    indtoadd(2) = indbt(1,1)-5;
+                                end
+                                indbt = [indtoadd, indbt];
+                            elseif indtoadd(2) > indbt(2,end) % last bout
+                                if indtoadd(2) > size(vel,2)
+                                    indtoadd(2) = size(vel,2);
+                                end
+                                if indtoadd(1) <= indbt(2,end)
+                                    indtoadd(1) = indbt(2,end) + 1;
+                                end
+                                indbt = [indbt, indtoadd];
+                            else % between 2 bouts
+                                jsup = find(indbt(2,:)>fg.mu,1);
+                                jinf = find(indbt(1,:)<fg.mu);
+                                if isempty(jinf) == 0
+                                    jinf = jinf(end);
+                                elseif indtoadd(2) >= indbt(1,jsup)
+                                    indtoadd(2) = indbt(1,jsup)-1;
+                                    jinf = jsup-1;
+                                end
+                                if jsup-jinf == 1
+                                    % peak with position jsup
+                                    indbt = [indbt(:,1:jinf), indtoadd, indbt(:,jsup:end)];
+                                end
                             end
                         end
                     end
@@ -265,8 +268,6 @@ for f = 1:nb_detected_object
                 plot(x,y,'r')
             end
         end
-    else
-        indbt = [];
+        indbout{f} = indbt;
     end
-    indbout{f} = indbt;
 end

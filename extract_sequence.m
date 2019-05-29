@@ -1,5 +1,5 @@
-function [seq, xbody, ybody, ang_body] = extract_sequence(nb_detected_object,...
-    xbody, ybody, ang_body, fps)
+function [seq, xbody, ybody, ang_body, ang_tail] = extract_sequence(nb_detected_object,...
+    xbody, ybody, ang_body,ang_tail, fps)
 
 seq = cell(1,nb_detected_object);
 
@@ -9,6 +9,7 @@ for f = 1:nb_detected_object
     cx = xbody(f,:);
     cy = ybody(f,:);
     ca = ang_body(f,:);
+    cat = ang_tail(f,:);
     
     fxy = find(isnan(cx)==0);
     d = diff(fxy);
@@ -68,10 +69,12 @@ for f = 1:nb_detected_object
             cx(1,ft(1)) = cx(1,ft(1)-1);
             cy(1,ft(1)) = cy(1,ft(1)-1);
             ca(1,ft(1)) = ca(1,ft(1)-1);
+            cat(1,ft(1)) = cat(1,ft(1)-1);
             ft(1) = [];
         end
     end
     xbody(f,:) = cx;
     ybody(f,:) = cy;
     ang_body(f,:) = ca;
+    ang_tail(f,:) = cat;
 end

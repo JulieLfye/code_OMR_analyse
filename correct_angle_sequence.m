@@ -1,10 +1,10 @@
-function [angle, ang_OMR] = correct_angle_sequence(cang, fig, OMRangle)
+function [angle, ang_OMR] = correct_angle_sequence(cang, fig, OMRangle, lim)
 
 %% Information
 % input:
 
-% output:   - angle: angle of the fish between 0-2Pi, trigonometric convention
-%           - ang_OMR: angle of the fish to OMR, between 0-2Pi
+% output:   - angle: angle of the fish  trigonometric convention
+%           - ang_OMR: angle of the fish to OMR
 
 % test code
 % correct angle with fasttrack new version
@@ -12,12 +12,12 @@ function [angle, ang_OMR] = correct_angle_sequence(cang, fig, OMRangle)
 % close all
 % fig = 1;
 % OMRangle = 0;
-% f = 2;
-% cang = ang_body(f,:);
-
+% f = 11;
+% cang = ang_tail(f,:);
+% lim = 3;
 
 % for f = 1:nb_detected_object
-    %     cang = ang_body(f,:);
+%         cang = ang_body(f,:);
     
     ang = cang;
     
@@ -26,8 +26,8 @@ function [angle, ang_OMR] = correct_angle_sequence(cang, fig, OMRangle)
 %         plot(d)
 %         hold on
 %         plot(indall,val,'o')
-%         plot(xlim,[230*pi/180 230*pi/180],'k')
-    ind = indall(val <= 230*pi/180);
+%         plot(xlim,[lim lim],'k')
+    ind = indall(val <= lim);
     
     %% correction of peak, not of 0-360 edges
     nb_frame = size(ang,2);
@@ -177,7 +177,7 @@ function [angle, ang_OMR] = correct_angle_sequence(cang, fig, OMRangle)
     
     if fig == 1
         figure;
-        plot(ang_body(f,:)*180/pi,'r');
+        plot(cang*180/pi,'r');
         hold on;
         plot(angle*180/pi,'b');
         %     text(max(xlim)*0.8,max(ylim)*0.95,'red: raw angle')

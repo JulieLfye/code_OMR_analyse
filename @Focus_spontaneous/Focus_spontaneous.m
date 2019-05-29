@@ -2,7 +2,7 @@ classdef Focus_spontaneous < handle
    
     properties
         
-        date
+        dpf
         
         Root
         
@@ -14,7 +14,7 @@ classdef Focus_spontaneous < handle
             
             switch computer
                 case 'PCWIN64'
-                    this.Root = 'C:\Users\LJP\Documents\MATLAB\these\data_spontaneous\data\';
+                    this.Root = 'D:\OMR_acoustic_experiments\spontaneous\data\';
             end
             
         end
@@ -23,7 +23,7 @@ classdef Focus_spontaneous < handle
         
         function p = path(this)
            
-            p = [this.Root this.date filesep];
+            p = [this.Root this.dpf filesep];
             
         end
         

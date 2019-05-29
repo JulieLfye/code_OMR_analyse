@@ -2,7 +2,6 @@ classdef Focus_OMR < handle
    
     properties
         
-        date
         cycle
         speed
         dpf
@@ -26,7 +25,7 @@ classdef Focus_OMR < handle
         
         function p = path(this)
            
-            p = [this.Root filesep this.dpf filesep this.cycle filesep this.speed filesep this.date filesep];
+            p = [this.Root filesep this.dpf filesep this.cycle filesep this.speed filesep];
             
         end
         
