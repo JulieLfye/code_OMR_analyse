@@ -14,7 +14,7 @@ correl_lim = 0.85;
 indbout = cell(1,nb_detected_object);
 
 %% bout detection for OMR_acoustic
-f = 4;
+f = 17;
 for f = 1:nb_detected_object
     b = find(f_remove==f);
     if isempty(b) == 1
@@ -54,10 +54,10 @@ for f = 1:nb_detected_object
         
         [peakMagsvel, peakIndsvel] = findpeaks(vel,'MinPeakDistance', minIPI, 'MinPeakHeight', 1);
         
-        %     plot(vel)
-        %     hold on
-        %     plot(peakIndsvel,peakMagsvel,'bo')
-        %     plot(peakInds, vel(peakInds)+5,'ko')
+%             plot(vel)
+%             hold on
+%             plot(peakIndsvel,peakMagsvel,'bo')
+%             plot(peakInds, vel(peakInds)+5,'ko')
         
         %% part to define bout
         indbt = nan(2,size(peakInds,2));
@@ -253,6 +253,14 @@ for f = 1:nb_detected_object
             indbt(2,indbt(2,:) > size(vel,2)) = size(vel,2);
             if indbt(1,1) == 1
                 indbt(:,1) = [];
+            end
+            a = find(indbt(1,:)<1);
+            if isempty(a) == 0
+                indbt(:,a) = [];
+            end
+            a = find(indbt(2,:)<1);
+            if isempty(a) == 0
+                indbt(:,a) = [];
             end
         end
         

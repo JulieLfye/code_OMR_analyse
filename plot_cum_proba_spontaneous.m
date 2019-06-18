@@ -1,58 +1,14 @@
-% code test
-
 clc;
+clear;
 close all;
 
-% nb = [nan, nan];
-% no_tracking = [];
-% file = 'tracking.txt';
-% 
-% disp('Select the folder with the movie to analyze');
-% selpath = uigetdir('D:\OMR_acoustic_experiments\spontaneous');
-% disp('Movie to analyse?');
-% nb(1) = input('from ??     ');
-% nb(2) = input('to ??       ');
-% 
-% F = Focus_spontaneous();
-% 
-% for k = nb(1):nb(2)
-%     
-%     d = floor(k/10);
-%     u = floor(k-d*10);
-%     run = ['run_', num2str(d), num2str(u)];
-%     path = fullfile(selpath,run);
-%     
-%     if isfile(fullfile(path, 'raw_data.mat')) == 1
-%         
-%         load(fullfile(path,'raw_data.mat'));
-%         F.dpf = P.fish(4);
-%         F.dpf = [F.dpf '_dpf'];
-%         
-%         lat1 = lat(isnan(lat)==0);
-%         
-%         if isfolder(F.path) == 0
-%             mkdir(F.path);
-%         end
-%         
-%         if isfile(fullfile(F.path,'data_latency.mat')) == 1
-%             D = F.load('data_latency.mat');
-%             latency_ms = D.latency_ms;
-%             s = size(latency_ms,2);
-%             latency_ms{s+1} = lat1;
-%             save(fullfile(F.path,'data_latency.mat'),'latency_ms');
-%         else
-%             latency_ms{1} = lat1;
-%             save(fullfile(F.path,'data_latency.mat'), 'latency_ms');
-%         end
-%     end
-% end
 
 %% plot
 F = Focus_spontaneous();
 F.dpf = '5_dpf';
-D = F.load('data_latency.mat');
+D = F.load('data.mat');
 
-lat_ms = D.latency_ms;
+lat_ms = D.latency_ms_spon;
 
 s = size(lat_ms,2);
 for i = 1:s
