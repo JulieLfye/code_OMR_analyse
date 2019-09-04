@@ -14,7 +14,7 @@ correl_lim = 0.85;
 indbout = cell(1,nb_detected_object);
 
 %% bout detection for OMR_acoustic
-f = 17;
+f = 5;
 for f = 1:nb_detected_object
     b = find(f_remove==f);
     if isempty(b) == 1
@@ -197,6 +197,7 @@ for f = 1:nb_detected_object
                         acc = abs(diff(vel(x(x<peakIndsvel1(i)))));
                         xacc = x(x<peakIndsvel1(i));
                         xacc(1) = [];
+                        if indtoadd(1) < size(vel,2)
                         if x(1) < indtoadd(1)
                             accp = abs(diff(vel(x(1):indtoadd(1)+1)));
                         else
@@ -209,6 +210,9 @@ for f = 1:nb_detected_object
                         end
                         if isempty(a) == 0
                             indtoadd(1) = a;
+                        end
+                        else
+                           indtoadd = []; 
                         end
                     end
                     if isempty(indtoadd) == 0

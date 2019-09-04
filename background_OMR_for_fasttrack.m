@@ -2,12 +2,13 @@
 
 clc;
 close all;
+clear
 
 a = exist('path','var');
 
 if  a == 0
     disp('Select one frame for creating background file')
-    [file, path] = uigetfile('*.pgm',[],'D:\OMR_acoustic_experiments\OMR');
+    [file, path] = uigetfile('*.pgm',[],'D:\OMR_acoustic_experiments\');
     im = imread(fullfile(path,file));
 end
 
@@ -27,3 +28,4 @@ im_name = ['background_',path(end-21:end-14),'.pgm'];
 imwrite(background,fullfile(p,im_name));
 
 close all
+clear

@@ -14,7 +14,7 @@ classdef Focus_spontaneous < handle
             
             switch computer
                 case 'PCWIN64'
-                    this.Root = 'D:\OMR_acoustic_experiments\spontaneous\data\';
+                    this.Root = 'D:\OMR_acoustic_experiments\data\';
             end
             
         end

@@ -52,7 +52,7 @@ for k = 1:n
             % image
             % movie = function(im)
             
-            movie = uint8(frame_process(im)*255);
+%             movie = uint8(frame_process(im)*255);
             
             m = floor(nb/1000);
             c = floor((nb-m*1000)/100);

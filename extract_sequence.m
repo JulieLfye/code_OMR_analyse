@@ -3,35 +3,36 @@ function [seq, xbody, ybody, ang_body, ang_tail] = extract_sequence(nb_detected_
 
 seq = cell(1,nb_detected_object);
 
-f = 16;
+f = 10;
 for f = 1:nb_detected_object
-       
-    cx = xbody(f,:);
-    cy = ybody(f,:);
-    ca = ang_body(f,:);
-    cat = ang_tail(f,:);
-    
-    fxy = find(isnan(cx)==0);
-    d = diff(fxy);
-    ff = find(d > 1);
-    
-    ind_seq = nan(2,size(ff,2)+1);
-    if isempty(ff) == 0
-        for i = 1:size(ff,2)+1
-            % group of nan index
-            if i == 1
-                gp = unique(fxy(1:ff(1)));
-            elseif i == size(ff,2)+1
-                gp = unique(fxy(ff(i-1)+1:end));
-            else
-                gp = fxy(ff(i-1)+1:ff(i));
-            end
-            ind_seq(:,i) = [min(gp); max(gp)];
+
+cx = xbody(f,:);
+cy = ybody(f,:);
+ca = ang_body(f,:);
+cat = ang_tail(f,:);
+
+fxy = find(isnan(cx)==0);
+d = diff(fxy);
+ff = find(d > 1);
+
+ind_seq = nan(2,size(ff,2)+1);
+if isempty(ff) == 0
+    for i = 1:size(ff,2)+1
+        % group of nan index
+        if i == 1
+            gp = unique(fxy(1:ff(1)));
+        elseif i == size(ff,2)+1
+            gp = unique(fxy(ff(i-1)+1:end));
+        else
+            gp = fxy(ff(i-1)+1:ff(i));
         end
-    else
-        ind_seq = [min(fxy); max(fxy)];
+        ind_seq(:,i) = [min(gp); max(gp)];
     end
-    
+else
+    ind_seq = [min(fxy); max(fxy)];
+end
+
+if isempty(ind_seq)==0
     % study x and y discontinuity for each sequence
     start_seq = ind_seq(1,1);
     if size(ind_seq,2) == 1
@@ -77,4 +78,7 @@ for f = 1:nb_detected_object
     ybody(f,:) = cy;
     ang_body(f,:) = ca;
     ang_tail(f,:) = cat;
+else
+    seq{f} = [];
+end
 end

@@ -16,7 +16,7 @@ classdef Focus_OMR < handle
             
             switch computer
                 case 'PCWIN64'
-                    this.Root = 'D:\OMR_acoustic_experiments\OMR\data';
+                    this.Root = 'D:\OMR_acoustic_experiments\data\';
             end
             
         end

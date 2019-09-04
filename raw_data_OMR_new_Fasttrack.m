@@ -16,12 +16,13 @@ F.cycle = '10_mm';
 F.speed = '20_mm_s';
 
 disp('Select the folder with the movie to analyze');
-selpath = uigetdir('D:\OMR_acoustic_experiments\OMR\');
+selpath = uigetdir('D:\OMR_acoustic_experiments\');
 disp('Movie to analyse?');
 nb(1) = input('from ??     ');
 nb(2) = input('to ??       ');
 
-tic
+F.Root = [selpath(1:end-8) 'data\'];
+
 wb = waitbar(0,sprintf('Extract bout, movie 1 / %d', nb(2)-nb(1)+1));
 for k = nb(1):nb(2)
     
@@ -30,17 +31,13 @@ for k = nb(1):nb(2)
     run = ['run_', num2str(d), num2str(u)];
     path = fullfile(selpath,run);
     
-    
-    
     if isfolder(fullfile(path, 'movie','Tracking_Result')) == 1
-        
         if isfile(fullfile(path,'raw_data.mat')) == 0
             
             path = fullfile(path,'movie','Tracking_Result');
             t = readtable(fullfile(path,file),'Delimiter','\t');
             s = table2array(t);
-            
-            
+                   
             p = path(1:end-21);
             f = ['parametersrun_', num2str(d), num2str(u), '.mat'];
             load(fullfile(p,f));
@@ -100,14 +97,74 @@ for k = nb(1):nb(2)
             [indbout, xbody, ybody] = extract_bout(xbody,...
                 ybody, nb_detected_object, seq, fps, f_remove, checkIm);
             
-        else
-            load(fullfile(path,'raw_data.mat'))
-            F.dpf = P.fish(4);
-            F.dpf = [F.dpf '_dpf'];
-            clear IBI
-            
             % -- determine fish that are present from the OMR beginning
-            if nb_frame == 1650 % 1s no OMR and 10s OMR
+            if nb_frame == 1500 % 0s no OMR the 10s OMR
+                fish_to_consider = find(isnan(xbody(:,1)) == 0)';
+                a = 0;
+                for i = 1:size(fish_to_consider,2)
+                    f = fish_to_consider(i);
+                    indbt = indbout{f};
+                    a1 = size(indbt,2);
+                    if a1 > a
+                        a = a1;
+                    end
+                end
+                % -- Determine IBI
+                IBI = nan(1,size(fish_to_consider,2));
+                for i = 1:size(fish_to_consider,2)
+                    f = fish_to_consider(i);
+                    if sum(sum(indbout{f}(:,:))) ~= 0
+                        b = find(indbout{f}(1,:)>1);
+                        IBI(i) = mean(diff(indbout{f}(1,b)))/fps;
+                    end
+                end
+                
+                % -- Determine latency first bout
+                lat_im = nan(1,size(fish_to_consider,2));
+                lat_ms = lat_im;
+                % i = 1;
+                for i = 1:size(fish_to_consider,2)
+                    f = fish_to_consider(i);
+                    indbt = indbout{f};
+                    t = find(indbt(1,:) > 0,1);
+                    if isempty(t) == 0
+                        lat_im(i) = indbt(1,t);
+                        lat_ms(i) = (indbt(1,t)-1)/150;
+                    end
+                end
+                
+                % -- Determine direction of bouts
+                % mat_turn
+                % line: fish
+                % column: bout
+                mat_turn = nan(size(fish_to_consider,2),a);
+                for i = 1:size(fish_to_consider,2)
+                    f = fish_to_consider(i);
+                    indbt = indbout{f};
+                    t = find(indbt(1,:) > 0);
+                    j = 1;
+                    if isempty(t) == 0
+                        while j <= size(t,2)
+                            if indbt(1,t(j))-10 > 0
+                                ang_b = mean(angle_OMR(f,indbt(1,t(j))-10:indbt(1,t(j))));
+                                ang_b = mod(ang_b, 2*pi);
+                            else
+                                ang_b = angle_OMR(f,indbt(1,t(j)));
+                            end
+                            if ang_b > pi
+                                ang_b = ang_b - 2*pi;
+                            end
+                            turn = angle_OMR(f,indbt(2,t(j)))-angle_OMR(f,indbt(1,t(j)));
+                            if abs(turn) > 20*pi/180
+                                mat_turn(i,j) = -sign(ang_b)*sign(turn);
+                            else
+                                mat_turn(i,j) = 0;
+                            end
+                            j = j+1;
+                        end
+                    end
+                end
+            elseif nb_frame ~= 1650 % 1s no OMR and then OMR
                 fish_to_consider = find(isnan(xbody(:,150)) == 0)';
                 a = 0;
                 for i = 1:size(fish_to_consider,2)
@@ -174,73 +231,6 @@ for k = nb(1):nb(2)
                         end
                     end
                 end
-                % ------- 10s OMR
-            elseif nb_frame == 1500
-                fish_to_consider = find(isnan(xbody(:,1)) == 0)';
-                a = 0;
-                for i = 1:size(fish_to_consider,2)
-                    f = fish_to_consider(i);
-                    indbt = indbout{f};
-                    a1 = size(indbt,2);
-                    if a1 > a
-                        a = a1;
-                    end
-                end
-                % -- Determine IBI
-                IBI = nan(1,size(fish_to_consider,2));
-                for i = 1:size(fish_to_consider,2)
-                    f = fish_to_consider(i);
-                    if sum(sum(indbout{f}(:,:))) ~= 0
-                        b = find(indbout{f}(1,:)>1);
-                        IBI(i) = mean(diff(indbout{f}(1,b)))/fps;
-                    end
-                end
-                
-                % -- Determine latency first bout
-                lat_im = nan(1,size(fish_to_consider,2));
-                lat_ms = lat_im;
-                % i = 1;
-                for i = 1:size(fish_to_consider,2)
-                    f = fish_to_consider(i);
-                    indbt = indbout{f};
-                    t = find(indbt(1,:) > 0,1);
-                    if isempty(t) == 0
-                        lat_im(i) = indbt(1,t);
-                        lat_ms(i) = (indbt(1,t)-1)/150;
-                    end
-                end
-                
-                % -- Determine direction of bouts
-                % mat_turn
-                % line: fish
-                % column: bout
-                mat_turn = nan(size(fish_to_consider,2),a);
-                for i = 1:size(fish_to_consider,2)
-                    f = fish_to_consider(i);
-                    indbt = indbout{f};
-                    t = find(indbt(1,:) > 0);
-                    j = 1;
-                    if isempty(t) == 0
-                        while j <= size(t,2)
-                            if indbt(1,t(j))-10 > 0
-                                ang_b = mean(angle_OMR(f,indbt(1,t(j))-10:indbt(1,t(j))));
-                                ang_b = mod(ang_b, 2*pi);
-                            else
-                                ang_b = angle_OMR(f,indbt(1,t(j)));
-                            end
-                            if ang_b > pi
-                                ang_b = ang_b - 2*pi;
-                            end
-                            turn = angle_OMR(f,indbt(2,t(j)))-angle_OMR(f,indbt(1,t(j)));
-                            if abs(turn) > 20*pi/180
-                                mat_turn(i,j) = -sign(ang_b)*sign(turn);
-                            else
-                                mat_turn(i,j) = 0;
-                            end
-                            j = j+1;
-                        end
-                    end
-                end
             end
             
             % -- save raw data
@@ -256,43 +246,51 @@ for k = nb(1):nb(2)
             ib = IBI;
             angOMR = angle_OMR;
             clear IBI angle_OMR
+        else
+            load(fullfile(path,'raw_data.mat'))
+            F.dpf = P.fish(4);
+            F.dpf = [F.dpf '_dpf'];
+            angOMR = angle_OMR;
+            ib = IBI;
+            clear IBI angle_OMR
+        end
+        
+        % save summary data
+        if isfolder(F.path) == 0
+            mkdir(F.path);
+        end
+        
+        if isfile(fullfile(F.path,'data.mat')) == 1
+            D = F.load('data.mat');
+            
+            a = size(D.IBI,2);
+            D.latency_im{a+1} = lat_im;
+            D.latency_ms{a+1} = lat_ms;
+            D.bout_direction{a+1} = mat_turn;
+            D.IBI{a+1} = ib;
+            D.angle_OMR{a+1} = angOMR(fish_to_consider,:);
+            OMR_ang = [D.OMR_ang OMR_angle];
+            n_fish = [D.n_fish size(fish_to_consider,2)];
+            latency_im = D.latency_im;
+            latency_ms = D.latency_ms;
+            bout_direction = D.bout_direction;
+            IBI = D.IBI;
+            angle_OMR = D.angle_OMR;
+            save(fullfile(F.path,'data.mat'),'latency_im','latency_ms','bout_direction','IBI',...
+                'angle_OMR','OMR_ang','n_fish');
+        else
+            latency_im{1} = lat_im;
+            latency_ms{1} = lat_ms;
+            bout_direction{1} = mat_turn;
+            IBI{1} = ib;
+            angle_OMR{1} = angOMR(fish_to_consider,:);
+            OMR_ang = OMR_angle;
+            n_fish = size(fish_to_consider,2);
+            save(fullfile(F.path,'data.mat'),'latency_im','latency_ms','bout_direction','IBI',...
+                'angle_OMR','OMR_ang','n_fish');
         end
     else
         no_tracking = [no_tracking, k];
-    end
-    
-    if isfolder(F.path) == 0
-        mkdir(F.path);
-    end
-    
-    if isfile(fullfile(F.path,'data.mat')) == 1
-        D = F.load('data.mat');
-        
-        a = size(D.IBI,2);
-        D.latency_im{a+1} = lat_im;
-        D.latency_ms{a+1} = lat_ms;
-        D.bout_direction{a+1} = mat_turn;
-        D.IBI{a+1} = ib;
-        D.angle_OMR{a+1} = angOMR;
-        OMR_ang = [D.OMR_ang OMR_angle];
-        n_fish = [D.n_fish size(fish_to_consider,2)];
-        latency_im = D.latency_im;
-        latency_ms = D.latency_ms;
-        bout_direction = D.bout_direction;
-        IBI = D.IBI;
-        angle_OMR = D.angle_OMR;
-        save(fullfile(F.path,'data.mat'),'latency_im','latency_ms','bout_direction','IBI',...
-            'angle_OMR','OMR_ang','n_fish');
-    else
-        latency_im{1} = lat_im;
-        latency_ms{1} = lat_ms;
-        bout_direction{1} = mat_turn;
-        IBI{1} = ib;
-        angle_OMR{1} = angOMR;
-        OMR_ang = OMR_angle;
-        n_fish = size(fish_to_consider,2);
-        save(fullfile(F.path,'data.mat'),'latency_im','latency_ms','bout_direction','IBI',...
-            'angle_OMR','OMR_ang','n_fish');
     end
     
     waitbar((k-nb(1)+1)/(nb(2)-nb(1)+1),wb,sprintf('Extract bout, movie %d / %d', k-nb(1)+1, nb(2)-nb(1)+1));

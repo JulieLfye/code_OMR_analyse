@@ -6,22 +6,31 @@ clc;
 
 % load OMR data
 F = Focus_OMR();
-F.dpf = '5_dpf';
+
+% --- Experiment Protocol background
+% r = 'whole_illumination_asus_projo'; 
+% r = 'whole_illumination'; 
+r = 'OMR_fixed'; 
+
+F.Root = fullfile('D:\OMR_acoustic_experiments',r,'OMR\data');
+
+F.dpf = '7_dpf';
 F.cycle = '10_mm';
 F.speed = '20_mm_s';
+
 D = F.load('data.mat');
 
 % load spontaneous data
 Fs = Focus_spontaneous();
 Fs.dpf = F.dpf;
-
+Fs.Root = fullfile('D:\OMR_acoustic_experiments',r,'spontaneous\data\');
 Ds = Fs.load('data.mat');
 
 %% Hist IBI
 % -- OMR IBI
 IBI = D.IBI;
 ne = 100;
-xc = linspace(10/ne,10,ne)-10/(2*ne);
+xc = linspace(5/ne,5,ne)-5/(2*ne);
 
 % ib1 = [];
 % for i = 1:size(IBI,2)
