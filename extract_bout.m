@@ -16,8 +16,8 @@ indbout = cell(1,nb_detected_object);
 %% bout detection for OMR_acoustic
 f = 5;
 for f = 1:nb_detected_object
-    b = find(f_remove==f);
-    if isempty(b) == 1
+%     b = find(f_remove==f);
+%     if isempty(b) == 1
         indb = seq{f}(1);
         inde = seq{f}(2);
         
@@ -281,5 +281,5 @@ for f = 1:nb_detected_object
             end
         end
         indbout{f} = indbt;
-    end
+%     end
 end

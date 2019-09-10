@@ -169,7 +169,7 @@ function [angle, ang_OMR] = correct_angle_sequence(cang, fig, OMRangle, lim)
     
     
     %% Angle to OMR
-    ang_OMR = angle - OMRangle;
+    ang_OMR = angle - OMRangle*pi/180;
     ang1 = mean(ang_OMR(1,1:5),'omitnan');
     if ang1 > pi
         ang_OMR(1,:) = ang_OMR(1,:) - 2*pi;
