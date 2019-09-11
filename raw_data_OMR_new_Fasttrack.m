@@ -134,7 +134,7 @@ for k = nb(1):nb(2)
                 end
                 
                 % -- Determine latency first bout
-                lat_im = nan(size(fish_to_consider),1);
+                lat_im = nan(size(fish_to_consider));
                 lat_ms = lat_im;
                 % i = 1;
                 for i = 1:nfish
