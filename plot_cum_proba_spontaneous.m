@@ -30,6 +30,8 @@ for i = 1:s
     ycp(i,:) = [0, cumsum(counts)/sum(counts)];
 end
 
+return
+
 xcenters = linspace(0,10,101);
 d = diff(xcenters);
 xcenters = cumsum(d)-d(1)/2;

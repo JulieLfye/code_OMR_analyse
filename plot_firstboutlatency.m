@@ -1,7 +1,7 @@
-%% -- Plot hist IBI for spontaneous data and OMR
+%% -- Plotfirst bout latency for spontaneous data and OMR
 
 clear;
-% close all;
+close all;
 clc;
 
 % load OMR data
@@ -12,7 +12,8 @@ r = 'whole_illumination_asus_projo';
 % r = 'whole_illumination'; 
 % r = 'OMR_fixed'; 
 
-F.Root = fullfile('D:\OMR_acoustic_experiments',r,'OMR\data');
+% F.Root = fullfile('D:\OMR_acoustic_experiments',r,'OMR\data');
+F.Root = fullfile('D:\OMR_acoustic_experiments',r,'pattern_OMR\data');
 
 F.dpf = '5_dpf';
 F.cycle = '10_mm';
@@ -37,7 +38,7 @@ end
 
 %% First bout latency OMR
 lat = D.latency_ms;
-ne = 100; % nb interval
+ne = 50; % nb interval
 time = 5; % in sec
 xc = linspace(time/ne,time,ne)-time/(2*ne);
 
@@ -45,9 +46,11 @@ xc = linspace(time/ne,time,ne)-time/(2*ne);
 mlat = nan(1,size(lat,2));
 pb_lat = nan(size(lat,2),size(xc,2));
 for i = 1:size(lat,2)
-    lat2 = lat{i};
+    lat2 = lat{i}-10/150; % OMR starts 10 frame after 150 or 0
+%     lat2 = lat{i};
     lat2(isnan(lat2)==1) = [];
     lat2(lat2 > time) = [];
+    lat2(lat2 < 0) = [];
     [counts, ~] = hist(lat2,xc);
     pb_lat(i,:) = counts/size(lat2,2);
     mlat(i) = mean(lat2);
@@ -70,7 +73,7 @@ for i = 1:size(lat,2)
     lat1 = [lat1 l];
 end
 
-% figure
+figure
 plot(xc,cumsum(m),color)
 hold on
 patch([xc fliplr(xc)], [cumsum(m)-s fliplr(cumsum(m)+s)], color, 'FaceAlpha', 0.3, 'EdgeColor', 'none')
@@ -100,9 +103,10 @@ lats = Ds.latency_ms_spon;
 mlats = nan(1,size(lats,2));
 pb_lats = nan(size(lats,2),size(xc,2));
 for i = 1:size(lats,2)
-    lat2 = lats{i};
+    lat2 = lats{i}-10/150;
     lat2(isnan(lat2)==1) = [];
     lat2(lat2 > time) = [];
+    lat2(lat2 < 0) = [];
     [counts, ~] = hist(lat2,xc);
     pb_lats(i,:) = counts/size(lat2,2);
     mlats(i) = mean(lat2);
@@ -125,16 +129,19 @@ end
 
 ms = mean(pb_lats);
 ss = std(pb_lats)/sqrt(size(lats,2));
-figure;
-plot(xc,cumsum(ms),color)
+% figure;
+plot(xc,cumsum(ms))
 hold on
-patch([xc fliplr(xc)], [cumsum(ms)-ss fliplr(cumsum(ms)+ss)], color, 'FaceAlpha', 0.3, 'EdgeColor', 'none')
-plot(xc,ms,color)
+patch([xc fliplr(xc)], [cumsum(ms)-ss fliplr(cumsum(ms)+ss)],color, 'FaceAlpha', 0.3, 'EdgeColor', 'none')
+plot(xc,ms)
 ylim([0 1])
 text(max(xlim)*0.8, max(ylim)*0.9, ['n_{run} = ' num2str(size(lats,2))])
-text(max(xlim)*0.8, max(ylim)*0.8, ['n_{fish} = ' num2str(sum(Ds.n_fish))])
+text(max(xlim)*0.8, max(ylim)*0.8, ['n_{fish} = ' num2str(sum(Ds.nb_fish_spon))])
 text(max(xlim)*0.8, max(ylim)*0.7, ['p = ' num2str(p,3)])
 title(['First bout latency spontaneous, ' F.dpf(1) 'dpf'])
+
+xlim([0 2])
+ylim([0 0.2])
 
 % % % -- All
 
@@ -147,22 +154,22 @@ title(['First bout latency spontaneous, ' F.dpf(1) 'dpf'])
 % plot(xc,clat1s,color)
 % title('First bout latency OMR, all')
 
-%% difference
-% d = cumsum(clat1s)-cumsum(clat1);
-dc = cumsum(ms)-cumsum(m);
-figure(3)
-plot(xc,dc,color)
-hold on
-f = find(dc==max(dc));
-stem(xc(f),dc(f),color)
-text(8,max(ylim)*0.9,['t = ' num2str(xc(f)) 's'],'Color',color)
-title('difference cpdf first bout latency, spon-OMR')
-
-% d = (ms-m).^2;
-% figure
-% plot(xc,d,color)
-% % hold on
-% % f = find(dc==max(dc));
-% % stem(xc(f),dc(f),color)
+% %% difference
+% % d = cumsum(clat1s)-cumsum(clat1);
+% dc = cumsum(ms)-cumsum(m);
+% figure(3)
+% plot(xc,dc,color)
+% hold on
+% f = find(dc==max(dc));
+% stem(xc(f),dc(f),color)
+% text(8,max(ylim)*0.9,['t = ' num2str(xc(f)) 's'],'Color',color)
 % title('difference cpdf first bout latency, spon-OMR')
+% 
+% % d = (ms-m).^2;
+% % figure
+% % plot(xc,d,color)
+% % % hold on
+% % % f = find(dc==max(dc));
+% % % stem(xc(f),dc(f),color)
+% % title('difference cpdf first bout latency, spon-OMR')
 
