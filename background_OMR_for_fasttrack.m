@@ -8,9 +8,11 @@ a = exist('path','var');
 
 if  a == 0
     disp('Select one frame for creating background file')
-    [file, path] = uigetfile('*.pgm',[],'D:\OMR_acoustic_experiments\');
+    [file, path] = uigetfile('*.pgm',[],'D:\free_swimming_fish\OMR_acoustic\');
     im = imread(fullfile(path,file));
 end
+
+return
 
 T = adaptthresh(im,0.67);
 imshow(T)
