@@ -34,7 +34,9 @@ nf = zeros(3,4);
 for j = 1:3
     if j==1
         F.dpf = '5_dpf';
-        D5 = F.load('data.mat');
+%         D5 = F.load('data.mat');
+        D5 = load('D:\free_swimming_fish\OMR_acoustic\OMR_fixed\OMR\data_0809\5_dpf\10_mm\20_mm_s\data_2908_to_0209.mat');
+        
         nf(j,4) = sum(D5.nb_fish);
         
         btall5  = [];
@@ -73,7 +75,8 @@ for j = 1:3
         
     elseif j == 2
         F.dpf = '6_dpf';
-        D6 = F.load('data.mat');
+%         D6 = F.load('data.mat');
+        D6 = load('D:\free_swimming_fish\OMR_acoustic\OMR_fixed\OMR\data_0809\6_dpf\10_mm\20_mm_s\data_3008_to_0309.mat');
         nf(j,4) = sum(D6.nb_fish);
         
         btall6  = [];
@@ -110,7 +113,8 @@ for j = 1:3
         end
     elseif j == 3
         F.dpf = '7_dpf';
-        D7 = F.load('data.mat');
+%         D7 = F.load('data.mat');
+        D7 = load('D:\free_swimming_fish\OMR_acoustic\OMR_fixed\OMR\data_0809\7_dpf\10_mm\20_mm_s\data_3108_to_0409.mat');
         nf(j,4) = sum(D7.nb_fish);
         
         btall7  = [];

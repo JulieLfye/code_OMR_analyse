@@ -19,8 +19,11 @@ pforward = nan(size(xc));
 pagainst = pforward;
 ptoward = pforward;
 
-F.dpf = '5_dpf';
-D = F.load('data.mat');
+D = load('D:\free_swimming_fish\OMR_acoustic\OMR_fixed\OMR\data_0809\5_dpf\10_mm\20_mm_s\data_2908_to_0209.mat');
+
+% F.dpf = '5_dpf';
+% D = F.load('data.mat');
+
 
 btall  = [];
 for i = 1:size(D.bout_direction,2)
